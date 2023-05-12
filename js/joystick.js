@@ -184,10 +184,10 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 		//	return;
 		//} 
 		// var realPosition = getPosition(self.div);
-		var realX = window.scrollX + touch_obj.clientX;
-		var realY = window.scrollY + touch_obj.clientY;
+		var realX = window.scrollX + touch_obj.clientX - self.startdx;
+		var realY = window.scrollY + touch_obj.clientY - self.startdy;
 		// console.log(realX, realY);
-        var dis = getDistance(realX, realY , self.x, self.y);
+        var dis = getDistance(realX, realY, self.x, self.y);
         if(dis < self.radius * 1.25){
             self.control.style.left = realX - self.inner_radius + 'px';
             self.control.style.top = realY - self.inner_radius + 'px';
@@ -229,6 +229,9 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 		{
 			return;
 		} 
+		self.startdx = realX - self.x;
+		self.startdy = realY - self.y;
+		/*
         var dis = getDistance(realX, realY, self.x, self.y);
         if(dis < self.radius * 1.25){
             self.control.style.left = realX - self.inner_radius + 'px';
@@ -257,8 +260,7 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
             self.right = self.__is_right( dx, dy );
             self.dx = dx;
             self.dy = dy;
-
-        }
+        }*/
 	}
 	function clear_flags()
 	{
