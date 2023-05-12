@@ -108,7 +108,7 @@ class Lidar{
 
         context.beginPath();
         context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-        context.fillStyle = 'grey';
+        context.fillStyle = 'rgba(100, 100, 100, 0.7)';
         context.fill();
         context.lineWidth = 3;
         context.strokeStyle = '#000000';

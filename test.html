@@ -94,13 +94,13 @@
                 messageType : 'geometry_msgs/Twist',
             });
 
-            var listener = new ROSLIB.Topic({
+            var LidarListener = new ROSLIB.Topic({
                 ros : ros,
                 name : '/scan',
                 messageType : 'sensor_msgs/LaserScan'
             });
 
-            listener.subscribe(function(message) {
+            LidarListener.subscribe(function(message) {
                 // console.log(message);
                 if(typeof lidar === 'undefined') return;
                 if(message.header.stamp.secs - lidar_time_stamp + (message.header.stamp.nsecs - lidar_time_stamp_ns) / 1000000000 > lidar_update_time){
@@ -112,6 +112,16 @@
                 else premsg.push(message);
                 // listener.unsubscribe();
             });
+            /*
+            var VoltageListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/PowerVoltage',
+                messageType : 'std_msgs/Float32'
+            });
+
+            VoltageListener.subscribe(function(message) {
+                console.log(message);
+            });*/
 
         </script>
         <script type="text/javascript" defer>
@@ -147,7 +157,7 @@
                         }
                     });
                 }
-                console.log(twist);
+                //console.log(twist);
                 cmdVel.publish(twist);
             }
 			window.addEventListener("load", function(){
