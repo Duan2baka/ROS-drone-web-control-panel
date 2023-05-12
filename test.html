@@ -38,21 +38,25 @@
         <script src="./bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         <script type="text/javascript">
 
-            var joystick;
             var video_width = 640;
             var video_height = 480;
-            var init_radius = 80;
-            var init_button_size = 80;
+
+            var joystick;
+            var joystick_radius = 80;
+
+            var rotation_button_size = 80;
             var JoystickStatus = -1;
             var RotationbuttonStatus = -1;
-            var LidarStatus = -1;
+            var zoom_button_size = 40;
+            var zoombuttonStatus = -1;
 
             var lidarSize = 200;
             var lidar_update_time = 0.2;
             var lidar_time_stamp = -1;
             var lidar_time_stamp_ns = -1;
-            var lidarScaler = 4;
             var lidar_intensity = 4;
+            var LidarStatus = -1;
+            var premsg = [];
             
 
             var is_stop = true;
@@ -63,8 +67,6 @@
 
         </script>
         <script type="text/javascript">
-
-            var premsg = [];
 
             // Connecting to ROS
             // -----------------
@@ -104,7 +106,7 @@
                 // console.log(message);
                 if(typeof lidar === 'undefined') return;
                 if(message.header.stamp.secs - lidar_time_stamp + (message.header.stamp.nsecs - lidar_time_stamp_ns) / 1000000000 > lidar_update_time){
-                    lidar.update_canvas(message, premsg, lidarScaler, lidar_intensity);
+                    lidar.update_canvas(message, premsg, lidar_intensity);
                     lidar_time_stamp = message.header.stamp.secs;
                     lidar_time_stamp_ns = message.header.stamp.nsecs;
                     premsg = [];
@@ -167,33 +169,30 @@
                 ///-------------------------------------------------------------------------------------------------- create the joystick component
 
                 joystick = new JoyStick({
-                    radius: init_radius,
+                    radius: joystick_radius,
                     x: document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + init_radius * 1.5,
-                    y: document.getElementById("canvas").offsetTop + 
-                    (/*document.getElementById("canvas").offsetHeight -*/ video_height) * 0.75,
-                    inner_radius: init_radius * 7 / 8,
+                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + joystick_radius * 1.5,
+                    y: document.getElementById("canvas").offsetTop +  video_height * 0.75,
+                    inner_radius: joystick_radius * 7 / 8,
                     father_element: mjpeg,
                 });
                 clockwiseButton = new Button({
                     x: document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - init_button_size,
-                    y: document.getElementById("canvas").offsetTop + 
-                    (/*document.getElementById("canvas").offsetHeight -*/ video_height) * 0.75,
+                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - rotation_button_size,
+                    y: document.getElementById("canvas").offsetTop + video_height * 0.75,
                     father_element: mjpeg,
                     id: "clockwiseButton",
                     src: "./images/clockwise.png",
-                    size: init_button_size,
+                    size: rotation_button_size,
                 });
                 counterclockwiseButton = new Button({
                     x: document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - init_button_size - 20 - init_button_size,
-                    y: document.getElementById("canvas").offsetTop + 
-                    (/*document.getElementById("canvas").offsetHeight -*/ video_height) * 0.75,
+                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - rotation_button_size - 20 - rotation_button_size,
+                    y: document.getElementById("canvas").offsetTop + video_height * 0.75,
                     father_element: mjpeg,
                     id: "counterclockwiseButton",
                     src: "./images/counterclockwise.png",
-                    size: init_button_size,
+                    size: rotation_button_size,
                 });
                 lidar = new Lidar({
                     x: document.getElementById("canvas").offsetLeft + 
@@ -204,9 +203,33 @@
                     width: lidarSize,
                     height: lidarSize,
                 });
+                zoomInButton = new Button({
+                    x: lidarSize / 2 + zoom_button_size / 2 + 10,
+                    y: lidarSize - 10,
+                    father_element: lidar.div,
+                    id: "clockwiseButton",
+                    src: "./images/zoomIn.png",
+                    size: zoom_button_size,
+                    onClick: ()=>{
+                        lidar.scaler ++;
+                        lidar.scaler = Math.min(lidar.scaler, 7);
+                    },
+                });
+                zoomOutButton = new Button({
+                    x: lidarSize / 2 - zoom_button_size / 2 - 10,
+                    y: lidarSize - 10,
+                    father_element: lidar.div,
+                    id: "counterclockwiseButton",
+                    src: "./images/zoomOut.png",
+                    size: zoom_button_size,
+                    onClick: ()=>{
+                        lidar.scaler --;
+                        lidar.scaler = Math.max(lidar.scaler, 1);
+                    },
+                });
                 // console.log(joystick.control)
-                //joystick.x = document.getElementById("joystick").getBoundingClientRect().x + init_radius / 2;
-                //joystick.y = document.getElementById("joystick").getBoundingClientRect().y + init_radius / 2;
+                //joystick.x = document.getElementById("joystick").getBoundingClientRect().x + joystick_radius / 2;
+                //joystick.y = document.getElementById("joystick").getBoundingClientRect().y + joystick_radius / 2;
 
                 ///-------------------------------------------------------------------------------------------------- create the video component
 
@@ -254,7 +277,7 @@
                 /// ------------------------------- joystick
 
                 joystick.x = document.getElementById("canvas").offsetLeft + 
-                (document.getElementById("canvas").offsetWidth - video_width) / 2 + init_radius * 1.5;
+                (document.getElementById("canvas").offsetWidth - video_width) / 2 + joystick_radius * 1.5;
                 joystick.y = document.getElementById("canvas").offsetTop + 
                 (/*document.getElementById("canvas").offsetHeight -*/ video_height) * 0.75;
                 joystick.control.style.top = joystick.y - joystick.inner_radius + 'px';
@@ -265,14 +288,17 @@
                 joystick.base.style.left = joystick.x - joystick.radius + 'px';
 
                 clockwiseButton.update_position(document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - init_button_size
+                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - rotation_button_size
                     , document.getElementById("canvas").offsetTop + video_height * 0.75);
                 counterclockwiseButton.update_position(document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - init_button_size - 20 - init_button_size
+                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - rotation_button_size - 20 - rotation_button_size
                     , document.getElementById("canvas").offsetTop + video_height * 0.75);
                 lidar.update_position(document.getElementById("canvas").offsetLeft + 
                     (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - lidarSize - 10,
-                    document.getElementById("canvas").offsetTop + 10,)
+                    document.getElementById("canvas").offsetTop + 10);
+                zoomInButton.update_position(lidarSize / 2 + zoom_button_size / 2 + 10, lidarSize - 10);
+                zoomOutButton.update_position(lidarSize / 2 - zoom_button_size / 2 - 10, lidarSize - 10);
+                
                 
                 //joystick.control.style.top = this.y - joystick.control.style.inner_radius + 'px';
                 //joystick.control.style.left = this.x - joystick.control.style.inner_radius + 'px';
@@ -285,6 +311,9 @@
                     clockwiseButton.setHidden(RotationbuttonStatus);
                     counterclockwiseButton.setHidden(RotationbuttonStatus);
                     lidar.setHidden(LidarStatus);
+                    zoomOutButton.setHidden(zoombuttonStatus);
+                    zoomInButton.setHidden(zoombuttonStatus);
+                    zoombuttonStatus = -1;
                     JoystickStatus = -1;
                     RotationbuttonStatus = -1;
                     LidarStatus = -1;
@@ -353,7 +382,7 @@
             addEventListener( 'mouseup', update_speed );*/
             ///----------------------------------------------------------------------------------------------------- UI handler 
             function OnToggler( evt ){
-                console.log(evt.type);
+                // console.log(evt.type);
                 update_twist(0, 0, 0, 0, 0, 0);
                 if(JoystickStatus == -1){
                     JoystickStatus = joystick.base.hidden;
@@ -369,6 +398,11 @@
                     LidarStatus = lidar.canvas.hidden;
                     lidar.setHidden(true);
                 }
+                if(zoombuttonStatus == -1){
+                    zoombuttonStatus = zoomInButton.base.hidden;
+                    zoomInButton.setHidden(true);
+                    zoomOutButton.setHidden(true);
+                }
             }
 
             function JoystickCheckboxHandler(cb){
@@ -381,7 +415,6 @@
                 if(joystick.base.hidden){
                     update_twist(0, 0, 0, 0, 0, 0);
                 }
-                // console.log(cb.checked);
             }
             function RotationButtonCheckboxHandler(cb){
                 if(cb == null){
@@ -393,7 +426,14 @@
                 if(!cb.checked){
                     update_twist(0, 0, 0, 0, 0, 0);
                 }
-                // console.log(cb.checked);
+            }
+            function ZoomButtonCheckboxHandler(cb){
+                if(cb == null){
+                    cb = document.getElementById("ZoomButtonCheckbox");
+                    cb.checked = !cb.checked;
+                }
+                zoomInButton.setHidden(!cb.checked);
+                zoomOutButton.setHidden(!cb.checked);
             }
             function LidarCheckboxHandler(cb){
                 if(cb == null){
@@ -402,9 +442,6 @@
                 }
                 lidar.setHidden(!cb.checked);
                 //document.getElementById("lidarCanvas").hidden = !cb.checked;
-                if(!cb.checked){
-                    update_twist(0, 0, 0, 0, 0, 0);
-                }
                 // console.log(cb.checked);
             }
             function onloadfunction(){
@@ -476,6 +513,16 @@
                                             <input class="form-check-input" type="checkbox" value="" id="LidarCheckbox" onchange="LidarCheckboxHandler(this);" checked>
                                             <label class="form-check-label" for="flexCheckDefault" id="LidarCheckboxLabel">
                                            Lidar
+                                            </label>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript: ZoomButtonCheckboxHandler(null);">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="" id="ZoomButtonCheckbox" onchange="ZoomButtonCheckboxHandler(this);" checked>
+                                            <label class="form-check-label" for="flexCheckDefault" id="ZoomButtonCheckboxLabel">
+                                           Zoom button
                                             </label>
                                         </div>
                                     </a>

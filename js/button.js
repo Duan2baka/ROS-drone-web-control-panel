@@ -7,7 +7,7 @@ class Button {
         this.id = attrs.id || "button";
         this.div = null;
         this.size = attrs.size;
-        this.onClick = attrs.onClick;
+        this.onClick = attrs.onClick || null;
         this.flag = false;
         this.base = null;
         this.img = null;
@@ -99,6 +99,7 @@ class Button {
         }
     
         function start_click(){
+            //console.log(123);
             self.flag = true;
             var div_style = self.base.style;
             div_style.backgroundColor = "rgba(255, 255, 255, 0.7)";
@@ -106,6 +107,10 @@ class Button {
         }
         this.bind('mousedown', start_click );
         this.bind('touchstart', start_click );
+        if(this.onClick){
+            this.bind('mousedown', this.onClick );
+            this.bind('touchstart', this.onClick );
+        }
         addEventListener( 'touchend', clear_flags );
         addEventListener( 'mouseup', clear_flags );
     }

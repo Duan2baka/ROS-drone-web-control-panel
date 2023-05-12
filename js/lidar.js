@@ -64,7 +64,7 @@ class Lidar{
         context.strokeStyle = '#000000';
         context.stroke();
 
-        var triangleSize = this.width * 30 / 500/ 4 * this.scaler;
+        var triangleSize = this.width * 30 / 500 / 4 * this.scaler;
 
         context.beginPath();
         context.moveTo(centerX, centerY - triangleSize/2);
@@ -87,7 +87,7 @@ class Lidar{
         this.div.style.left = this.x + "px";
     }
 
-    update_canvas(message, premsg, lidarScaler, lidar_intensity){
+    update_canvas(message, premsg, lidar_intensity){
         function drawDot(x, y, ctx, radius = 3) {
             ctx.fillStyle = "red";
             ctx.beginPath();
@@ -114,7 +114,7 @@ class Lidar{
         context.strokeStyle = '#000000';
         context.stroke();
 
-        var triangleSize = this.width * 30 / 500 / 4 * lidarScaler;
+        var triangleSize = this.width * 30 / 500 / 4 * this.scaler;
 
         context.beginPath();
         context.moveTo(centerX, centerY - triangleSize/2);
@@ -138,10 +138,10 @@ class Lidar{
             for(var j = 0; j < premsg.length; j ++)
                 if((!premsg[j].ranges[i])) tmpFlag = false;
             if(tmpFlag && message.ranges[i]){
-                if(message.ranges[i] <= 0.5 / lidarScaler * range_max){
-                    drawDot(centerX - (Math.cos(st + 0.5 * Math.PI) * message.ranges[i] / range_max) * (this.width * 0.8 - 5) * lidarScaler,
-                    centerY + (Math.sin(st + 0.5 * Math.PI) * message.ranges[i] / range_max) * (this.width * 0.8 - 5) * lidarScaler, context,
-                    Math.min(Math.max(3 * this.width / 300, 1), 3));
+                if(message.ranges[i] <= 0.5 / this.scaler * range_max){
+                    drawDot(centerX - (Math.cos(st + 0.5 * Math.PI) * message.ranges[i] / range_max) * (this.width * 0.8 - 5) * this.scaler,
+                    centerY + (Math.sin(st + 0.5 * Math.PI) * message.ranges[i] / range_max) * (this.width * 0.8 - 5) * this.scaler, context,
+                    Math.min(Math.max(3 * this.width * this.scaler / 4 / 300, 1), 3));
                 }
                 //console.log(typeof (0.4*range_max));
             }
