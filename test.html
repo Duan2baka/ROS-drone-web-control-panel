@@ -103,7 +103,6 @@
             });
 
             LidarListener.subscribe(function(message) {
-                // console.log(message);
                 if(typeof lidar === 'undefined') return;
                 if(message.header.stamp.secs - lidar_time_stamp + (message.header.stamp.nsecs - lidar_time_stamp_ns) / 1000000000 > lidar_update_time){
                     lidar.update_canvas(message, premsg, lidar_intensity);
@@ -227,9 +226,6 @@
                         lidar.scaler = Math.max(lidar.scaler, 1);
                     },
                 });
-                // console.log(joystick.control)
-                //joystick.x = document.getElementById("joystick").getBoundingClientRect().x + joystick_radius / 2;
-                //joystick.y = document.getElementById("joystick").getBoundingClientRect().y + joystick_radius / 2;
 
                 ///-------------------------------------------------------------------------------------------------- create the video component
 
@@ -242,9 +238,6 @@
                 });
 
                 function run_all_time(){
-                    //console.log(document.getElementById("joystick").getBoundingClientRect().x)
-                    //console.log("triggered");
-                    //console.log(joystick.x);
                     var text = '';
                     var dx = (-joystick.dy) || 0;
                     var dy = (-joystick.dx) || 0;
@@ -278,8 +271,7 @@
 
                 joystick.x = document.getElementById("canvas").offsetLeft + 
                 (document.getElementById("canvas").offsetWidth - video_width) / 2 + joystick_radius * 1.5;
-                joystick.y = document.getElementById("canvas").offsetTop + 
-                (/*document.getElementById("canvas").offsetHeight -*/ video_height) * 0.75;
+                joystick.y = document.getElementById("canvas").offsetTop + video_height * 0.75;
                 joystick.control.style.top = joystick.y - joystick.inner_radius + 'px';
                 joystick.control.style.left = joystick.x - joystick.inner_radius + 'px';
 
@@ -298,11 +290,6 @@
                     document.getElementById("canvas").offsetTop + 10);
                 zoomInButton.update_position(lidarSize / 2 + zoom_button_size / 2 + 10, lidarSize - 10);
                 zoomOutButton.update_position(lidarSize / 2 - zoom_button_size / 2 - 10, lidarSize - 10);
-                
-                
-                //joystick.control.style.top = this.y - joystick.control.style.inner_radius + 'px';
-                //joystick.control.style.left = this.x - joystick.control.style.inner_radius + 'px';
-
 
                 if(evt.type == 'shown.bs.collapse' || evt.type == 'hidden.bs.collapse' 
                 || evt.type == 'shown.bs.dropdown' || evt.type == 'hidden.bs.dropdown'){
@@ -339,48 +326,8 @@
                 }
             }
 
-            /*function update_speed(){
-                var dx = joystick.dx;
-                var dy = joystick.dy;
-                if(!is_stop){
-                    var twist = new ROSLIB.Message({
-                        linear : {
-                        x : dx / (dx + dy),
-                        y : dy / (dx + dy),
-                        z : 0
-                        },
-                        angular : {
-                        x : 0,
-                        y : 0,
-                        z : 0
-                        }
-                    });
-                    cmdVel.publish(twist);
-                }
-                else{
-                    var twist = new ROSLIB.Message({
-                        linear : {
-                        x : 0,
-                        y : 0,
-                        z : 0
-                        },
-                        angular : {
-                        x : 0,
-                        y : 0,
-                        z : 0
-                        }
-                    });
-                    cmdVel.publish(twist);
-                }
-            }
-
-            addEventListener( 'touchmove', update_speed )
-            addEventListener( 'touchstart', update_speed );
-            addEventListener( 'touchend', update_speed );
-            addEventListener( 'mousedown', update_speed );
-            addEventListener( 'mousemove', update_speed );
-            addEventListener( 'mouseup', update_speed );*/
             ///----------------------------------------------------------------------------------------------------- UI handler 
+
             function OnToggler( evt ){
                 // console.log(evt.type);
                 update_twist(0, 0, 0, 0, 0, 0);
