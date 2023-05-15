@@ -113,6 +113,78 @@
                 else premsg.push(message);
                 // listener.unsubscribe();
             });
+
+            var mapListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/map',
+                messageType : 'nav_msgs/OccupancyGrid'
+            });
+
+            function drawMap(message){
+                var width = 100, height = 100;
+                var imageData = new ImageData(width, height);
+                for (var i = 0; i < width * height; i++) {
+                    if(data[i] == -1){
+                        imageData.data[i * 4] = 128; // Red channel
+                        imageData.data[i * 4 + 1] = 128; // Green channel
+                        imageData.data[i * 4 + 2] = 128; // Blue channel
+                        imageData.data[i * 4 + 3] = 255; // Alpha channel
+                    }
+                    else{
+                        imageData.data[i * 4] = 255; // Red channel
+                        imageData.data[i * 4] = (100 - data[i]) / 100 * 255; // Green channel
+                        imageData.data[i * 4 + 2] = (100 - data[i]) / 100 * 255; // Blue channel
+                        imageData.data[i * 4 + 3] = 255; // Alpha channel
+                    }
+                }
+                function drawDot(x, y, ctx, radius = 3, color) {
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                var canvas = document.getElementById("map");
+                if(canvas.hidden) return;
+                // console.log(canvas);
+                canvas.width = width;
+                canvas.height = height;
+                var context = canvas.getContext("2d");
+                context.putImageData(imageData, 0, 0);
+                /*
+                var centerX = canvas.width / 2;
+                var centerY = canvas.height / 2;
+                var radius = this.width * 0.4;
+
+                context.beginPath();
+                context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+                context.fillStyle = 'rgba(100, 100, 100, 0.7)';
+                context.fill();
+                context.lineWidth = 3;
+                context.strokeStyle = '#000000';
+                context.stroke();
+
+                var triangleSize = this.width * 30 / 500 / 4 * this.scaler;
+
+                context.beginPath();
+                context.moveTo(centerX, centerY - triangleSize/2);
+                context.lineTo(centerX - triangleSize/2, centerY + triangleSize/2);
+                context.lineTo(centerX + triangleSize/2, centerY + triangleSize/2);
+                context.closePath();
+                context.fillStyle = 'blue';
+                context.fill();
+
+                // deal with the message
+                var increment = message.angle_increment;
+                var angle_max = message.angle_max;
+                var angle_min = message.angle_min;
+                var range_max = message.range_max;
+                var range_min = message.range_min;
+                var st = message.angle_min;*/
+            }
+            mapListener.subscribe(function(message) {
+                console.log(message);
+                drawMap(message);
+            });
             /*
             var VoltageListener = new ROSLIB.Topic({
                 ros : ros,
@@ -491,5 +563,6 @@
             </div>
         </nav>
         <div id="canvas" style="text-align: center;"></div>
+        <div><canvas id="map"></canvas></div>
     </body>
 </html>
