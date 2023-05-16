@@ -121,10 +121,11 @@
             });
 
             function drawMap(message){
-                var width = 100, height = 100;
+                if(typeof message.info === 'undefined') return;
+                var width = message.info.width, height = message.info.height;
                 var imageData = new ImageData(width, height);
                 for (var i = 0; i < width * height; i++) {
-                    if(data[i] == -1){
+                    if(message.data[i] == -1){
                         imageData.data[i * 4] = 128; // Red channel
                         imageData.data[i * 4 + 1] = 128; // Green channel
                         imageData.data[i * 4 + 2] = 128; // Blue channel
@@ -132,8 +133,8 @@
                     }
                     else{
                         imageData.data[i * 4] = 255; // Red channel
-                        imageData.data[i * 4] = (100 - data[i]) / 100 * 255; // Green channel
-                        imageData.data[i * 4 + 2] = (100 - data[i]) / 100 * 255; // Blue channel
+                        imageData.data[i * 4 + 1] = (100 - message.data[i]) / 100 * 255; // Green channel
+                        imageData.data[i * 4 + 2] = (100 - message.data[i]) / 100 * 255; // Blue channel
                         imageData.data[i * 4 + 3] = 255; // Alpha channel
                     }
                 }
@@ -185,6 +186,29 @@
                 console.log(message);
                 drawMap(message);
             });
+            
+            var PoseListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/amcl_pose',
+                messageType : 'geometry_msgs/PoseWithCovarianceStamped'
+            });
+            var MapMetaListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/map_metadata',
+                messageType : 'nav_msgs/MapMetaData'
+            });
+            MapMetaListener.subscribe(function(message) {
+                console.log(message);
+                drawMap(message);
+            });
+            PoseListener.subscribe(function(message) {
+                console.log(message);
+                //drawMap(message);
+            });
+            /*
+                amcl_pose(geometry_msgs/PoseWithCovarianceStamped)
+                map_metadata（nav_msgs / MapMetaData
+            */
             /*
             var VoltageListener = new ROSLIB.Topic({
                 ros : ros,
@@ -566,3 +590,7 @@
         <div><canvas id="map"></canvas></div>
     </body>
 </html>
+<!--
+    amcl_pose(geometry_msgs/PoseWithCovarianceStamped)
+    map_metadata（nav_msgs / MapMetaData）
+-->
