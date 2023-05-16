@@ -109,7 +109,7 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 	this.id = "Joystick";
 	///////////////////////////////////////////
 	this.base = document.createElement('span');
-	this.base.setAttribute("draggable", false);
+	//this.base.setAttribute("draggable", false);
     var flag = false;
 	div_style = this.base.style;
 	div_style.width = this.radius * 2 + 'px';
@@ -122,14 +122,14 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 	div_style.borderWidth = '1px';
 	div_style.borderStyle = 'solid';
 	div_style.touchAction = 'none';
-	div_style.userSelect = 'none';
-	div_style.webkitUserSelect = 'none';
+	//div_style.userSelect = 'none';
+	//div_style.webkitUserSelect = 'none';
 	//console.log(div_style);
 	this.base.id = 'joystick';
 	this.div.appendChild( this.base );
 	///////////////////////////////////////////
 	this.control = document.createElement('span');
-	this.control.setAttribute("draggable", false);
+	//this.control.setAttribute("draggable", false);
 	this.control.id = "joystick_panel"
 	div_style = this.control.style;
 	div_style.width = this.inner_radius * 2 + 'px';
@@ -143,8 +143,8 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 	div_style.borderColor = 'rgba(200,200,200,0.8)';
 	div_style.borderStyle = 'solid';
 	div_style.touchAction = 'none';
-	div_style.userSelect = 'none';
-	div_style.webkitUserSelect = 'none';
+	//div_style.userSelect = 'none';
+	//div_style.webkitUserSelect = 'none';
 	/// console.log(div_style);
 	this.div.appendChild( this.control );
 	///////////////////////////////////////////
@@ -180,10 +180,8 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 	}*/
 	function touch_hander( evt ) /// mouse on the joystick
 	{
-		// console.log("enter");
-        // console.log("enter");
         if(flag == false) return;
-		// console.log("entered");
+		//console.log("entered");
 		var touch_obj = evt.changedTouches ? evt.changedTouches[0] : evt;
 		// console.log(touch_obj.clientX);
 		//if ( self.mouse_support && !(touch_obj.buttons === 1) )
@@ -191,6 +189,7 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 		//	return;
 		//} 
 		// var realPosition = getPosition(self.div);
+		//console.log(self);
 		var realX = window.scrollX + touch_obj.clientX - self.startdx;
 		var realY = window.scrollY + touch_obj.clientY - self.startdy;
 		// console.log(realX, realY);
@@ -226,16 +225,12 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 	}
     function touch_start_hander( evt ) /// mouse on the joystick
 	{
-		// aconsole.log("enter start");
+		//console.log("enter start");
         flag = true;
 		var touch_obj = evt.changedTouches ? evt.changedTouches[0] : evt;
 		//var realPosition = getPosition(self.div);
 		var realX = window.scrollX + touch_obj.clientX;
 		var realY = window.scrollY + touch_obj.clientY;
-		if ( self.mouse_support && !(touch_obj.buttons === 1) )
-		{
-			return;
-		} 
 		self.startdx = realX - self.x;
 		self.startdy = realY - self.y;
 		/*

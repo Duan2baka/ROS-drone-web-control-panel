@@ -4,6 +4,7 @@
         <title>Test</title>
 
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <style type="text/css">
             * {
@@ -37,9 +38,11 @@
         <link href="./bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <script src="./bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         <script type="text/javascript">// global variables
-
+            
             var video_width = 640;
             var video_height = 480;
+            var scaler = 1;
+            var mjpeg;
 
             var joystick;
             var joystick_radius = 80;
@@ -248,7 +251,9 @@
             VoltageListener.subscribe(function(message) {
                 console.log(message);
             });*/
-
+            addEventListener("orientationchange", function() {
+                window.location.reload();
+            });
         </script>
         <script type="text/javascript" defer>
             var prex, prey, preax, preay, preaz;
@@ -287,65 +292,72 @@
                 cmdVel.publish(twist);
             }
 			window.addEventListener("load", function(){
-                var mjpeg = document.getElementById("canvas");
+                mjpeg = document.getElementById("canvas");
+                if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+                    video_width = (window.innerWidth - parseInt(getComputedStyle(mjpeg).paddingLeft, 10) - parseInt(getComputedStyle(mjpeg).paddingRight, 10)) * 0.8;
+                    video_height = video_width / 640 * 480;
+                    scaler =  video_width / 640;
+                }
+                
                 // console.log(document.getElementById("canvas").offsetWidth);
 
                 ///-------------------------------------------------------------------------------------------------- create the joystick component
 
                 joystick = new JoyStick({
-                    radius: joystick_radius,
-                    x: document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + joystick_radius * 1.5,
-                    y: document.getElementById("canvas").offsetTop +  video_height * 0.75,
-                    inner_radius: joystick_radius * 7 / 8,
+                    radius: joystick_radius * scaler,
+                    x: mjpeg.offsetLeft + 
+                    (mjpeg.offsetWidth - video_width) / 2 + joystick_radius * scaler * 1.5,
+                    y: mjpeg.offsetTop +  video_height * 0.75,
+                    inner_radius: joystick_radius * 7 / 8 * scaler,
                     father_element: mjpeg,
                 });
                 clockwiseButton = new Button({
-                    x: document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - rotation_button_size,
-                    y: document.getElementById("canvas").offsetTop + video_height * 0.75,
+                    x: mjpeg.offsetLeft + 
+                    (mjpeg.offsetWidth - video_width) / 2 + video_width - 10 * scaler - rotation_button_size * scaler,
+                    y: mjpeg.offsetTop + video_height * 0.75,
                     father_element: mjpeg,
                     id: "clockwiseButton",
                     src: "./images/clockwise.png",
-                    size: rotation_button_size,
+                    size: rotation_button_size * scaler,
                 });
                 counterclockwiseButton = new Button({
-                    x: document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - rotation_button_size - 20 - rotation_button_size,
-                    y: document.getElementById("canvas").offsetTop + video_height * 0.75,
+                    x: mjpeg.offsetLeft + 
+                    (mjpeg.offsetWidth - video_width) / 2 + video_width - 10 * scaler - rotation_button_size  * scaler -
+                    20 * scaler - rotation_button_size * scaler,
+                    y: mjpeg.offsetTop + video_height * 0.75,
                     father_element: mjpeg,
                     id: "counterclockwiseButton",
                     src: "./images/counterclockwise.png",
-                    size: rotation_button_size,
+                    size: rotation_button_size * scaler,
                 });
                 lidar = new Lidar({
-                    x: document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - lidarSize - 10,
-                    y: document.getElementById("canvas").offsetTop + 10,
+                    x: mjpeg.offsetLeft + 
+                    (mjpeg.offsetWidth - video_width) / 2 + video_width - lidarSize * scaler - 10 * scaler,
+                    y: mjpeg.offsetTop + 10 * scaler,
                     father_element: mjpeg,
                     id: "lidarCanvas",
-                    width: lidarSize,
-                    height: lidarSize,
+                    width: lidarSize * scaler,
+                    height: lidarSize * scaler,
                 });
                 zoomInButton = new Button({
-                    x: lidarSize / 2 + zoom_button_size / 2 + 10,
-                    y: lidarSize - 10,
+                    x: lidarSize * scaler / 2 + zoom_button_size * scaler / 2 + 10 * scaler,
+                    y: lidarSize * scaler - 10 * scaler,
                     father_element: lidar.div,
                     id: "clockwiseButton",
                     src: "./images/zoomIn.png",
-                    size: zoom_button_size,
+                    size: zoom_button_size * scaler,
                     onClick: ()=>{
                         lidar.scaler ++;
                         lidar.scaler = Math.min(lidar.scaler, 7);
                     },
                 });
                 zoomOutButton = new Button({
-                    x: lidarSize / 2 - zoom_button_size / 2 - 10,
-                    y: lidarSize - 10,
+                    x: lidarSize * scaler / 2 - zoom_button_size * scaler / 2 - 10 * scaler,
+                    y: lidarSize * scaler - 10 * scaler,
                     father_element: lidar.div,
                     id: "counterclockwiseButton",
                     src: "./images/zoomOut.png",
-                    size: zoom_button_size,
+                    size: zoom_button_size * scaler,
                     onClick: ()=>{
                         lidar.scaler --;
                         lidar.scaler = Math.max(lidar.scaler, 1);
@@ -361,7 +373,6 @@
                     height : video_height,
                     topic : '/camera/rgb/image_raw'
                 });
-
                 function run_all_time(){
                     var text = '';
                     var dx = (-joystick.dy) || 0;
@@ -394,9 +405,9 @@
 
                 /// ------------------------------- joystick
 
-                joystick.x = document.getElementById("canvas").offsetLeft + 
-                (document.getElementById("canvas").offsetWidth - video_width) / 2 + joystick_radius * 1.5;
-                joystick.y = document.getElementById("canvas").offsetTop + video_height * 0.75;
+                joystick.x = mjpeg.offsetLeft + 
+                    (mjpeg.offsetWidth - video_width) / 2 + joystick_radius * scaler * 1.5;
+                joystick.y = mjpeg.offsetTop + video_height * 0.75;
                 joystick.control.style.top = joystick.y - joystick.inner_radius + 'px';
                 joystick.control.style.left = joystick.x - joystick.inner_radius + 'px';
 
@@ -404,17 +415,18 @@
                 joystick.base.style.top = joystick.y - joystick.radius + 'px';
                 joystick.base.style.left = joystick.x - joystick.radius + 'px';
 
-                clockwiseButton.update_position(document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - rotation_button_size
-                    , document.getElementById("canvas").offsetTop + video_height * 0.75);
-                counterclockwiseButton.update_position(document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - 10 - rotation_button_size - 20 - rotation_button_size
-                    , document.getElementById("canvas").offsetTop + video_height * 0.75);
-                lidar.update_position(document.getElementById("canvas").offsetLeft + 
-                    (document.getElementById("canvas").offsetWidth - video_width) / 2 + video_width - lidarSize - 10,
-                    document.getElementById("canvas").offsetTop + 10);
-                zoomInButton.update_position(lidarSize / 2 + zoom_button_size / 2 + 10, lidarSize - 10);
-                zoomOutButton.update_position(lidarSize / 2 - zoom_button_size / 2 - 10, lidarSize - 10);
+                clockwiseButton.update_position(mjpeg.offsetLeft + 
+                    (mjpeg.offsetWidth - video_width) / 2 + video_width - 10 * scaler - rotation_button_size * scaler
+                    , mjpeg.offsetTop + video_height * 0.75);
+                counterclockwiseButton.update_position(mjpeg.offsetLeft + 
+                    (mjpeg.offsetWidth - video_width) / 2 + video_width - 10 * scaler - rotation_button_size  * scaler -
+                    20 * scaler - rotation_button_size * scaler
+                    , mjpeg.offsetTop + video_height * 0.75);
+                lidar.update_position(mjpeg.offsetLeft + 
+                    (mjpeg.offsetWidth - video_width) / 2 + video_width - lidarSize * scaler - 10 * scaler,
+                    mjpeg.offsetTop + 10 * scaler);
+                zoomInButton.update_position(lidarSize * scaler / 2 + zoom_button_size * scaler / 2 + 10 * scaler, lidarSize * scaler - 10 * scaler);
+                zoomOutButton.update_position(lidarSize * scaler / 2 - zoom_button_size * scaler / 2 - 10 * scaler, lidarSize * scaler - 10 * scaler);
 
                 if(evt.type == 'shown.bs.collapse' || evt.type == 'hidden.bs.collapse' 
                 || evt.type == 'shown.bs.dropdown' || evt.type == 'hidden.bs.dropdown'){
@@ -615,7 +627,7 @@
                 </div>
             </div>
         </nav>
-        <div id="canvas" style="text-align: center;"></div>
+        <div id="canvas" style="text-align: center;" class="container-md"></div>
         <div><canvas id="map"></canvas></div>
     </body>
 </html>
