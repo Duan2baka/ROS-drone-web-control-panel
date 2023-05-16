@@ -145,7 +145,7 @@ JoyStick.prototype.__create_fullscreen_div = function(father_element)
 	div_style.touchAction = 'none';
 	div_style.userSelect = 'none';
 	div_style.webkitUserSelect = 'none';
-	console.log(div_style);
+	/// console.log(div_style);
 	this.div.appendChild( this.control );
 	///////////////////////////////////////////
 	var self = this;

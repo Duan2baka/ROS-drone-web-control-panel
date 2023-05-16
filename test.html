@@ -36,7 +36,7 @@
         <script type="text/javascript" src="./js/mjpegcanvas.min.js"></script>
         <link href="./bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <script src="./bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-        <script type="text/javascript">
+        <script type="text/javascript">// global variables
 
             var video_width = 640;
             var video_height = 480;
@@ -60,8 +60,8 @@
             
 
             var is_stop = true;
-            var speed_scaler = 1;
-            var angular_speed_scaler = 1;
+            var speed_scaler = 0.5;
+            var angular_speed_scaler = 0.5;
             var base_speed = 1;
             var angular_speed = 1;
 
@@ -192,22 +192,51 @@
                 name : '/amcl_pose',
                 messageType : 'geometry_msgs/PoseWithCovarianceStamped'
             });
-            var MapMetaListener = new ROSLIB.Topic({
+            /*var MapMetaListener = new ROSLIB.Topic({
                 ros : ros,
                 name : '/map_metadata',
                 messageType : 'nav_msgs/MapMetaData'
             });
-            MapMetaListener.subscribe(function(message) {
-                console.log(message);
-                drawMap(message);
+            var ParticleListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/particlecloud',
+                messageType : 'geometry_msgs/PoseArray'
+            });*/
+            var footprintListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/move_base/local_costmap/footprint',
+                messageType : 'geometry_msgs/PolygonStamped'
             });
-            PoseListener.subscribe(function(message) {
-                console.log(message);
+            
+            function drawSelf(message){
+                var canvas = document.getElementById("map");
+                if(canvas.hidden) return;
+                
+                context.beginPath();
+                /*
+                context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+                context.fillStyle = 'rgba(100, 100, 100, 0.7)';
+                context.fill();
+                context.lineWidth = 3;
+                context.strokeStyle = '#000000';
+                
+                
+                context.moveTo(centerX, centerY - triangleSize/2);
+                context.lineTo(centerX - triangleSize/2, centerY + triangleSize/2);
+                context.lineTo(centerX + triangleSize/2, centerY + triangleSize/2);
+                */
+                context.stroke();
+
+            }
+            footprintListener.subscribe(function(message) {
+                //console.log(message);
                 //drawMap(message);
+                drawSelf(message);
             });
             /*
+            /*
                 amcl_pose(geometry_msgs/PoseWithCovarianceStamped)
-                map_metadata（nav_msgs / MapMetaData
+                map_metadata(nav_msgs / MapMetaData)
             */
             /*
             var VoltageListener = new ROSLIB.Topic({
