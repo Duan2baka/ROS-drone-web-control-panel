@@ -28,6 +28,7 @@ class Lidar{
         div_style.left = this.x + "px";
         div_style.textAlign = "center";
         div_style.touchAction = 'none';
+        div_style.userSelect = 'none';
         father_element.appendChild( this.div );
 
         this.canvas = document.createElement('canvas');

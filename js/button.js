@@ -34,6 +34,7 @@ class Button {
             this.__init_div(father_element);
         }
         this.base = document.createElement('span');
+        this.base.setAttribute("draggable", false);
         var div_style = this.base.style;
         div_style.width = this.size + "px";
         div_style.height = this.size + "px";
@@ -42,10 +43,13 @@ class Button {
         div_style.left = this.x - this.size / 2 + "px";
         div_style.borderRadius = "50%";
         div_style.touchAction = 'none';
+        div_style.userSelect = 'none';
         div_style.backgroundColor = "rgba(200, 200, 200, 0.7)";
+        div_style.pointerEvents = 'none';
         this.div.appendChild( this.base );
 
         this.img = document.createElement('img');
+        this.img.setAttribute("draggable", false);
         this.img.src = this.src;
         var div_style = this.img.style;
         div_style.width = this.size * 2 / 3 + "px";
@@ -54,6 +58,7 @@ class Button {
         div_style.top = this.y - this.size / 3 + "px";
         div_style.left = this.x - this.size / 3 + "px";
         div_style.touchAction = 'none';
+        div_style.userSelect = 'none';
         // console.log(this.img.style);
         this.img.id = this.id;
         this.div.appendChild( this.img );
