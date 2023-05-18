@@ -75,7 +75,97 @@
             var posX = -1;
             var posY = -1;
         </script>
-        <script type="text/javascript">
+        <script type="text/javascript"> // opencv
+            function updateMap(){
+                if(mapMessage === -1) return;
+                var width = mapMessage.info.width, height = mapMessage.info.height;
+                var imageData = new ImageData(width, height);
+                for (var i = 0; i < width * height; i++) {
+                    if(mapMessage.data[i] == -1){
+                        imageData.data[i * 4] = 128; // Red channel
+                        imageData.data[i * 4 + 1] = 128; // Green channel
+                        imageData.data[i * 4 + 2] = 128; // Blue channel
+                        imageData.data[i * 4 + 3] = 255; // Alpha channel
+                    }
+                    else{
+                        imageData.data[i * 4] = 255; // Red channel
+                        imageData.data[i * 4 + 1] = (100 - mapMessage.data[i]) / 100 * 255; // Green channel
+                        imageData.data[i * 4 + 2] = (100 - mapMessage.data[i]) / 100 * 255; // Blue channel
+                        imageData.data[i * 4 + 3] = 255; // Alpha channel
+                    }
+                }
+                var canvas = document.getElementById("map");
+                if(canvas.hidden) return;
+                // console.log(canvas);
+                canvas.width = width;
+                canvas.height = height;
+                var context = canvas.getContext("2d");
+                context.putImageData(imageData, 0, 0);
+
+                if(posX != -1){
+                    context.fillStyle = 'green';
+                    context.beginPath();
+                    context.arc(posX, posY, 2, 0, 2 * Math.PI);
+                    context.fill();
+                }
+            }
+            window.addEventListener("load", function(){
+                var canvas = document.getElementById("map");
+                var mouseDown, startX, startY;
+                canvas.addEventListener('mousedown', function(e) {
+                    mouseDown = true;
+                    startX = e.clientX - canvas.offsetLeft + window.scrollX;
+                    startY = e.clientY - canvas.offsetTop + window.scrollY;
+                    //console.log(startX);
+                });
+
+                canvas.addEventListener('mousemove', function(e) {
+                    if (mouseDown) {
+                        mouseX = e.clientX - canvas.offsetLeft;
+                        mouseY = e.clientY - canvas.offsetTop;
+                    }
+                });
+
+                canvas.addEventListener('mouseup', function(e) {
+                    mouseDown = false;
+                });
+
+            });
+        </script>
+        <script type="text/javascript"> // ROS
+            function update_twist(x, y, z, ax, ay, az){
+                if(x == prex && y == prey && ax == preax && ay == preay && az == preaz) return;
+                prex = x; prey = y;
+                preax = ax; preay = ay; preaz = az;
+                var twist = new ROSLIB.Message({
+                    linear : {
+                        x : x * speed_scaler,
+                        y : y * speed_scaler,
+                        z : 0
+                    },
+                    angular : {
+                        x : ax * angular_speed_scaler,
+                        y : ay * angular_speed_scaler,
+                        z : az * angular_speed_scaler
+                    }
+                });
+                if(is_stop){
+                    twist = new ROSLIB.Message({
+                        linear : {
+                            x : 0,
+                            y : 0,
+                            z : 0
+                        },
+                        angular : {
+                            x : 0,
+                            y : 0,
+                            z : 0
+                        }
+                    });
+                }
+                //console.log(twist);
+                cmdVel.publish(twist);
+            }
 
             // Connecting to ROS
             // -----------------
@@ -134,39 +224,7 @@
                 messageType : 'nav_msgs/OccupancyGrid'
             });
 
-            function updateMap(){
-                if(mapMessage === -1) return;
-                var width = mapMessage.info.width, height = mapMessage.info.height;
-                var imageData = new ImageData(width, height);
-                for (var i = 0; i < width * height; i++) {
-                    if(mapMessage.data[i] == -1){
-                        imageData.data[i * 4] = 128; // Red channel
-                        imageData.data[i * 4 + 1] = 128; // Green channel
-                        imageData.data[i * 4 + 2] = 128; // Blue channel
-                        imageData.data[i * 4 + 3] = 255; // Alpha channel
-                    }
-                    else{
-                        imageData.data[i * 4] = 255; // Red channel
-                        imageData.data[i * 4 + 1] = (100 - mapMessage.data[i]) / 100 * 255; // Green channel
-                        imageData.data[i * 4 + 2] = (100 - mapMessage.data[i]) / 100 * 255; // Blue channel
-                        imageData.data[i * 4 + 3] = 255; // Alpha channel
-                    }
-                }
-                var canvas = document.getElementById("map");
-                if(canvas.hidden) return;
-                // console.log(canvas);
-                canvas.width = width;
-                canvas.height = height;
-                var context = canvas.getContext("2d");
-                context.putImageData(imageData, 0, 0);
-
-                if(posX != -1){
-                    context.fillStyle = 'green';
-                    context.beginPath();
-                    context.arc(posX, posY, 2, 0, 2 * Math.PI);
-                    context.fill();
-                }
-            }
+            
             function cancelAllGoals(){
                 cancelGoal.publish(new ROSLIB.Message({}));
             }
@@ -223,21 +281,8 @@
                 posY = map_y;
                 updateMap();
             });
-            /*
-                amcl_pose(geometry_msgs/PoseWithCovarianceStamped)
-                map_metadata(nav_msgs / MapMetaData)
-            */
-            /*
-            var VoltageListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/PowerVoltage',
-                messageType : 'std_msgs/Float32'
-            });
-
-            VoltageListener.subscribe(function(message) {
-                console.log(message);
-            });*/
             addEventListener("orientationchange", function() {
+                update_twist(0, 0, 0, 0, 0, 0);
                 window.location.reload();
             });
         </script>
@@ -272,42 +317,10 @@
             });
         </script>
 
-        <script type="text/javascript" defer>
+        <script type="text/javascript" defer> // UI
             var prex, prey, preax, preay, preaz;
             prex = prey = preax = preay = preaz = -1;
-            function update_twist(x, y, z, ax, ay, az){
-                if(x == prex && y == prey && ax == preax && ay == preay && az == preaz) return;
-                prex = x; prey = y;
-                preax = ax; preay = ay; preaz = az;
-                var twist = new ROSLIB.Message({
-                    linear : {
-                        x : x * speed_scaler,
-                        y : y * speed_scaler,
-                        z : 0
-                    },
-                    angular : {
-                        x : ax * angular_speed_scaler,
-                        y : ay * angular_speed_scaler,
-                        z : az * angular_speed_scaler
-                    }
-                });
-                if(is_stop){
-                    twist = new ROSLIB.Message({
-                        linear : {
-                            x : 0,
-                            y : 0,
-                            z : 0
-                        },
-                        angular : {
-                            x : 0,
-                            y : 0,
-                            z : 0
-                        }
-                    });
-                }
-                //console.log(twist);
-                cmdVel.publish(twist);
-            }
+            
 			window.addEventListener("load", function(){
                 mjpeg = document.getElementById("canvas");
                 if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
