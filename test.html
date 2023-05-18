@@ -68,6 +68,12 @@
             var base_speed = 1;
             var angular_speed = 1;
 
+            var map_resolution = -1;
+            var map_origin_x;
+            var map_origin_y;
+            var mapMessage = -1;
+            var posX = -1;
+            var posY = -1;
         </script>
         <script type="text/javascript">
 
@@ -98,6 +104,11 @@
                 name : '/cmd_vel',
                 messageType : 'geometry_msgs/Twist',
             });
+            var cancelGoal = new ROSLIB.Topic({
+                ros : ros,
+                name : '/move_base/cancel',
+                messageType : 'actionlib_msgs/GoalID',
+            });
 
             var LidarListener = new ROSLIB.Topic({
                 ros : ros,
@@ -123,12 +134,12 @@
                 messageType : 'nav_msgs/OccupancyGrid'
             });
 
-            function drawMap(message){
-                if(typeof message.info === 'undefined') return;
-                var width = message.info.width, height = message.info.height;
+            function updateMap(){
+                if(mapMessage === -1) return;
+                var width = mapMessage.info.width, height = mapMessage.info.height;
                 var imageData = new ImageData(width, height);
                 for (var i = 0; i < width * height; i++) {
-                    if(message.data[i] == -1){
+                    if(mapMessage.data[i] == -1){
                         imageData.data[i * 4] = 128; // Red channel
                         imageData.data[i * 4 + 1] = 128; // Green channel
                         imageData.data[i * 4 + 2] = 128; // Blue channel
@@ -136,16 +147,10 @@
                     }
                     else{
                         imageData.data[i * 4] = 255; // Red channel
-                        imageData.data[i * 4 + 1] = (100 - message.data[i]) / 100 * 255; // Green channel
-                        imageData.data[i * 4 + 2] = (100 - message.data[i]) / 100 * 255; // Blue channel
+                        imageData.data[i * 4 + 1] = (100 - mapMessage.data[i]) / 100 * 255; // Green channel
+                        imageData.data[i * 4 + 2] = (100 - mapMessage.data[i]) / 100 * 255; // Blue channel
                         imageData.data[i * 4 + 3] = 255; // Alpha channel
                     }
-                }
-                function drawDot(x, y, ctx, radius = 3, color) {
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-                    ctx.fill();
                 }
                 var canvas = document.getElementById("map");
                 if(canvas.hidden) return;
@@ -154,40 +159,21 @@
                 canvas.height = height;
                 var context = canvas.getContext("2d");
                 context.putImageData(imageData, 0, 0);
-                /*
-                var centerX = canvas.width / 2;
-                var centerY = canvas.height / 2;
-                var radius = this.width * 0.4;
 
-                context.beginPath();
-                context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-                context.fillStyle = 'rgba(100, 100, 100, 0.7)';
-                context.fill();
-                context.lineWidth = 3;
-                context.strokeStyle = '#000000';
-                context.stroke();
-
-                var triangleSize = this.width * 30 / 500 / 4 * this.scaler;
-
-                context.beginPath();
-                context.moveTo(centerX, centerY - triangleSize/2);
-                context.lineTo(centerX - triangleSize/2, centerY + triangleSize/2);
-                context.lineTo(centerX + triangleSize/2, centerY + triangleSize/2);
-                context.closePath();
-                context.fillStyle = 'blue';
-                context.fill();
-
-                // deal with the message
-                var increment = message.angle_increment;
-                var angle_max = message.angle_max;
-                var angle_min = message.angle_min;
-                var range_max = message.range_max;
-                var range_min = message.range_min;
-                var st = message.angle_min;*/
+                if(posX != -1){
+                    context.fillStyle = 'green';
+                    context.beginPath();
+                    context.arc(posX, posY, 2, 0, 2 * Math.PI);
+                    context.fill();
+                }
+            }
+            function cancelAllGoals(){
+                cancelGoal.publish(new ROSLIB.Message({}));
             }
             mapListener.subscribe(function(message) {
-                console.log(message);
-                drawMap(message);
+                //console.log(message);
+                mapMessage = message;
+                updateMap();
             });
             
             var PoseListener = new ROSLIB.Topic({
@@ -195,11 +181,7 @@
                 name : '/amcl_pose',
                 messageType : 'geometry_msgs/PoseWithCovarianceStamped'
             });
-            /*var MapMetaListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/map_metadata',
-                messageType : 'nav_msgs/MapMetaData'
-            });
+            /*
             var ParticleListener = new ROSLIB.Topic({
                 ros : ros,
                 name : '/particlecloud',
@@ -210,33 +192,37 @@
                 name : '/move_base/local_costmap/footprint',
                 messageType : 'geometry_msgs/PolygonStamped'
             });
-            
-            function drawSelf(message){
-                var canvas = document.getElementById("map");
-                if(canvas.hidden) return;
-                
-                context.beginPath();
-                /*
-                context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-                context.fillStyle = 'rgba(100, 100, 100, 0.7)';
-                context.fill();
-                context.lineWidth = 3;
-                context.strokeStyle = '#000000';
-                
-                
-                context.moveTo(centerX, centerY - triangleSize/2);
-                context.lineTo(centerX - triangleSize/2, centerY + triangleSize/2);
-                context.lineTo(centerX + triangleSize/2, centerY + triangleSize/2);
-                */
-                context.stroke();
-
-            }
-            footprintListener.subscribe(function(message) {
-                //console.log(message);
-                //drawMap(message);
-                drawSelf(message);
+            var tfListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/tf',
+                messageType : 'tf2_msgs/TFMessage'
             });
-            /*
+            var mapMetaListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/map_metadata',
+                messageType : 'nav_msgs/MapMetaData'
+            });
+            
+            footprintListener.subscribe(function(message) {
+            });
+            mapMetaListener.subscribe(function(message) {
+                //console.log(message);
+                map_resolution = message.resolution;
+                map_origin_x = parseFloat(message.origin.position.x);
+                map_origin_y = parseFloat(message.origin.position.y);
+            });
+            PoseListener.subscribe(function(message) {
+                //console.log(message);
+                if(map_resolution == -1) return;
+                var current_pose_x = parseFloat(message.pose.pose.position.x);
+                var current_pose_y = parseFloat(message.pose.pose.position.y);
+                var map_x = (current_pose_x - map_origin_x) / map_resolution;
+                var map_y = (current_pose_y - map_origin_y) / map_resolution;
+                //console.log("x: " + map_x + " y:" + map_y);
+                posX = map_x;
+                posY = map_y;
+                updateMap();
+            });
             /*
                 amcl_pose(geometry_msgs/PoseWithCovarianceStamped)
                 map_metadata(nav_msgs / MapMetaData)
@@ -255,6 +241,37 @@
                 window.location.reload();
             });
         </script>
+        <script type="text/javascript"> // navigation
+            var actionClient = new ROSLIB.ActionClient({
+                ros : ros,
+                serverName : '/move_base',
+                actionName : 'move_base_msgs/MoveBaseAction'
+            });
+
+            var positionVec3 = new ROSLIB.Vector3(null);
+            var orientation = new ROSLIB.Quaternion({x:0, y:0, z:0, w:1.0});
+
+            positionVec3.x = 3.0;
+            positionVec3.y = 0.0;
+
+            var pose = new ROSLIB.Pose({
+                position : positionVec3,
+                orientation : orientation
+            });
+
+            var goal = new ROSLIB.Goal({
+                actionClient : actionClient,
+                goalMessage : {
+                    target_pose : {
+                        header : {
+                            frame_id : '/map'
+                        },
+                        pose : pose
+                    }
+                }
+            });
+        </script>
+
         <script type="text/javascript" defer>
             var prex, prey, preax, preay, preaz;
             prex = prey = preax = preay = preaz = -1;
@@ -401,7 +418,7 @@
 
             function resetPosition( evt ){
                 // console.log("OnResize");
-                console.log(evt.type);
+                // console.log(evt.type);
 
                 /// ------------------------------- joystick
 
@@ -623,6 +640,7 @@
                         <button class="btn btn-outline-success" type="submit">Search</button>
                         </form>
                     -->
+                    <button class="btn btn-outline-danger me-2" type="submit" onclick="cancelAllGoals();" id ='stopnavibutton'>Stop Navigation</button>
                     <button class="btn btn-outline-success" type="submit" onclick="changeStatus();" id ='stopbutton'>Start</button>
                 </div>
             </div>
