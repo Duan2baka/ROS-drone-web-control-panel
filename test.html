@@ -38,7 +38,6 @@
         <link href="./bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <script src="./bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         <script type="text/javascript">// global variables
-            
             var video_width = 640;
             var video_height = 480;
             var scaler = 1;
@@ -76,7 +75,7 @@
             var posX = -1;
             var posY = -1;
 
-            var set_navigation = true;
+            var set_navigation = false;
         </script>
         <script type="text/javascript"> // opencv
             function updateMap(){
@@ -119,14 +118,12 @@
                     mouseDown = true;
                     startX = e.clientX - canvas.offsetLeft + window.scrollX;
                     startY = e.clientY - canvas.offsetTop + window.scrollY;
-                    //console.log("start point: (" + startX + ", " + startY + ")");
                 });
 
                 canvas.addEventListener('mousemove', function(e) {
                     if (mouseDown) {
                         var mouseX = e.clientX - canvas.offsetLeft + window.scrollX;
                         var mouseY = e.clientY - canvas.offsetTop + window.scrollY;
-                        //console.log("current point: (" + mouseX + ", " + mouseY + ")");
                     }
                 });
 
@@ -134,15 +131,8 @@
                     mouseDown = false;
                     var mouseX = e.clientX - canvas.offsetLeft + window.scrollX;
                     var mouseY = e.clientY - canvas.offsetTop + window.scrollY;
-                    //console.log("end point: (" + mouseX + ", " + mouseY + ")");
 
                     if(map_resolution == -1) return;
-                    /*
-                    var current_pose_x = parseFloat(message.pose.pose.position.x);
-                    var current_pose_y = parseFloat(message.pose.pose.position.y);
-                    var map_x = (current_pose_x - map_origin_x) / map_resolution;
-                    var map_y = (current_pose_y - map_origin_y) / map_resolution;
-                    */
                     var real_x = startX * map_resolution + map_origin_x; 
                     var real_y = startY * map_resolution + map_origin_y;
 
@@ -155,9 +145,72 @@
                     set_goal(real_x, real_y, orientation);
                 });
 
+                // resize(src, dst, Size(), 0.5, 0.5, interpolation);
+
             });
         </script>
-        <script type="text/javascript"> // ROS
+        <script type="text/javascript"> // ROS create toplic variable
+            // Connecting to ROS
+            // -----------------
+
+            var ros = new ROSLIB.Ros({
+                url : 'ws://192.168.1.10:9090'
+            });
+
+            ros.on('connection', function() {
+                console.log('Connected to websocket server.');
+            });
+
+            ros.on('error', function(error) {
+                console.log('Error connecting to websocket server: ', error);
+            });
+
+            ros.on('close', function() {
+                console.log('Connection to websocket server closed.');
+            });
+
+            var cmdVel = new ROSLIB.Topic({
+                ros : ros,
+                name : '/cmd_vel',
+                messageType : 'geometry_msgs/Twist',
+            });
+            var cancelGoal = new ROSLIB.Topic({
+                ros : ros,
+                name : '/move_base/cancel',
+                messageType : 'actionlib_msgs/GoalID',
+            });
+            var LidarListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/scan',
+                messageType : 'sensor_msgs/LaserScan'
+            });
+            var mapListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/map',
+                messageType : 'nav_msgs/OccupancyGrid'
+            });
+            var PoseListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/amcl_pose',
+                messageType : 'geometry_msgs/PoseWithCovarianceStamped'
+            });
+            var footprintListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/move_base/local_costmap/footprint',
+                messageType : 'geometry_msgs/PolygonStamped'
+            });
+            var tfListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/tf',
+                messageType : 'tf2_msgs/TFMessage'
+            });
+            var mapMetaListener = new ROSLIB.Topic({
+                ros : ros,
+                name : '/map_metadata',
+                messageType : 'nav_msgs/MapMetaData'
+            });
+        </script>
+        <script type="text/javascript"> // ROS functions
             function update_twist(x, y, z, ax, ay, az){
                 if(x == prex && y == prey && ax == preax && ay == preay && az == preaz) return;
                 prex = x; prey = y;
@@ -191,46 +244,11 @@
                 //console.log(twist);
                 cmdVel.publish(twist);
             }
-
-            // Connecting to ROS
-            // -----------------
-
-            var ros = new ROSLIB.Ros({
-                url : 'ws://192.168.1.10:9090'
-            });
-
-            ros.on('connection', function() {
-                console.log('Connected to websocket server.');
-            });
-
-            ros.on('error', function(error) {
-                console.log('Error connecting to websocket server: ', error);
-            });
-
-            ros.on('close', function() {
-                console.log('Connection to websocket server closed.');
-            });
-
-            // Publishing a Topic
-            // ------------------
-
-            var cmdVel = new ROSLIB.Topic({
-                ros : ros,
-                name : '/cmd_vel',
-                messageType : 'geometry_msgs/Twist',
-            });
-            var cancelGoal = new ROSLIB.Topic({
-                ros : ros,
-                name : '/move_base/cancel',
-                messageType : 'actionlib_msgs/GoalID',
-            });
-
-            var LidarListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/scan',
-                messageType : 'sensor_msgs/LaserScan'
-            });
-
+            function cancelAllGoals(){
+                cancelGoal.publish(new ROSLIB.Message({}));
+            }
+        </script>
+        <script type="text/javascript"> // topic listeners
             LidarListener.subscribe(function(message) {
                 if(typeof lidar === 'undefined') return;
                 if(message.header.stamp.secs - lidar_time_stamp + (message.header.stamp.nsecs - lidar_time_stamp_ns) / 1000000000 > lidar_update_time){
@@ -242,50 +260,11 @@
                 else premsg.push(message);
                 // listener.unsubscribe();
             });
-
-            var mapListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/map',
-                messageType : 'nav_msgs/OccupancyGrid'
-            });
-
-            
-            function cancelAllGoals(){
-                cancelGoal.publish(new ROSLIB.Message({}));
-            }
             mapListener.subscribe(function(message) {
                 //console.log(message);
                 mapMessage = message;
                 updateMap();
             });
-            
-            var PoseListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/amcl_pose',
-                messageType : 'geometry_msgs/PoseWithCovarianceStamped'
-            });
-            /*
-            var ParticleListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/particlecloud',
-                messageType : 'geometry_msgs/PoseArray'
-            });*/
-            var footprintListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/move_base/local_costmap/footprint',
-                messageType : 'geometry_msgs/PolygonStamped'
-            });
-            var tfListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/tf',
-                messageType : 'tf2_msgs/TFMessage'
-            });
-            var mapMetaListener = new ROSLIB.Topic({
-                ros : ros,
-                name : '/map_metadata',
-                messageType : 'nav_msgs/MapMetaData'
-            });
-            
             footprintListener.subscribe(function(message) {
             });
             mapMetaListener.subscribe(function(message) {
@@ -307,10 +286,6 @@
                 posY = map_y;
                 console.log(message.pose.pose.orientation.z);
                 updateMap();
-            });
-            addEventListener("orientationchange", function() {
-                update_twist(0, 0, 0, 0, 0, 0);
-                window.location.reload();
             });
         </script>
         <script type="text/javascript"> // navigation
@@ -354,7 +329,7 @@
             var prex, prey, preax, preay, preaz;
             prex = prey = preax = preay = preaz = -1;
             
-			window.addEventListener("load", function(){
+			window.addEventListener("load", function(){ /// create UI components
                 mjpeg = document.getElementById("canvas");
                 if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
                     video_width = (window.innerWidth - parseInt(getComputedStyle(mjpeg).paddingLeft, 10) - parseInt(getComputedStyle(mjpeg).paddingRight, 10)) * 0.8;
@@ -460,9 +435,8 @@
                 run_all_time();
             });
             
-            ///-------------------------------------------------------------------------------------------------- change components' position
 
-            function resetPosition( evt ){
+            function resetPosition( evt ){ // update the position of components
                 // console.log("OnResize");
                 // console.log(evt.type);
 
@@ -508,7 +482,7 @@
             }
 
             addEventListener("resize", resetPosition);
-            function changeStatus(){
+            function changeStatus(){ /// Start Button
                 is_stop = !is_stop;
                 // console.log(is_stop);
                 if(is_stop){
@@ -526,7 +500,6 @@
                 }
             }
 
-            ///----------------------------------------------------------------------------------------------------- UI handler 
 
             function OnToggler( evt ){
                 // console.log(evt.type);
@@ -591,6 +564,11 @@
                 //document.getElementById("lidarCanvas").hidden = !cb.checked;
                 // console.log(cb.checked);
             }
+            function OnSetDestinationButtonClick(){
+                var tmp = document.getElementById("set_destination");
+                tmp.innerHTML = set_navigation ? "Set Destination" : "Cancel Set Destination";
+                set_navigation = !set_navigation;
+            }
             function onloadfunction(){
                 var elements = document.getElementsByClassName("navbar-collapse");
                 for (var i = 0; i < elements.length; i++) {
@@ -607,6 +585,11 @@
                     elements[i].addEventListener('hidden.bs.dropdown', resetPosition);
                 }
             }
+            
+            addEventListener("orientationchange", function() {
+                update_twist(0, 0, 0, 0, 0, 0);
+                window.location.reload();
+            });
 		</script>
     </head>
     <body onload="onloadfunction();">
@@ -622,17 +605,12 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Link</a>
-                        </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="#" id="componentDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Components
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <ul class="dropdown-menu" aria-labelledby="componentDropdown">
+                                <h6 class="dropdown-header">Control Components</h6>
                                 <li>
                                     <a class="dropdown-item" href="javascript: JoystickCheckboxHandler(null);">
                                         <div class="form-check">
@@ -654,6 +632,7 @@
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
+                                <h6 class="dropdown-header">Lidar</h6>
                                 <li>
                                     <a class="dropdown-item" href="javascript: LidarCheckboxHandler(null);">
                                         <div class="form-check">
@@ -674,10 +653,34 @@
                                         </div>
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <h6 class="dropdown-header">Map</h6>
+                                <li>
+                                    <a class="dropdown-item" href="javascript: MapCheckboxHandler(null);">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="" id="MapCheckbox" onchange="MapCheckboxHandler(this);" checked>
+                                            <label class="form-check-label" for="flexCheckDefault" id="MapCheckboxLabel">
+                                           Map
+                                            </label>
+                                        </div>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Navigation
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navDropdown">
+                                <li>
+                                    <a class="dropdown-item" id="set_destination" href="javascript: OnSetDestinationButtonClick();">Set Destination</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">Add Goal</a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <h6 class="dropdown-header">Goals</h6>
+                            </ul>
                         </li>
                     </ul>
                     <!--
