@@ -12,7 +12,7 @@ class Lidar{
         this.intensity = attrs.intensity || 4;
         this.update_time = attrs.update_time || 0.2;
         this.time_stamp = -1;
-        this.lidar_time_stamp_ns = -1;
+        this.time_stamp_ns = -1;
 
         this.__create_div(this.father_element);
         this.__init_canvas();
@@ -88,7 +88,12 @@ class Lidar{
         this.div.style.left = this.x + "px";
     }
 
-    update_canvas(message, premsg, lidar_intensity){
+    update_canvas(message, premsg){
+        if(message.header.stamp.secs - this.time_stamp + (message.header.stamp.nsecs - this.time_stamp_ns) / 1000000000 > this.update_time){
+            this.time_stamp = message.header.stamp.secs;
+            this.time_stamp_ns = message.header.stamp.nsecs;
+        }
+        else return false;
         function drawDot(x, y, ctx, radius = 3) {
             ctx.fillStyle = "red";
             ctx.beginPath();
@@ -133,7 +138,7 @@ class Lidar{
         var range_min = message.range_min;
         var st = message.angle_min;
 
-        for(var i = 0; i < message.ranges.length; i += lidar_intensity){
+        for(var i = 0; i < message.ranges.length; i += this.lidar_intensity){
             let tmpFlag = true;
             //console.log(premsg.length);
             for(var j = 0; j < premsg.length; j ++)
@@ -146,8 +151,9 @@ class Lidar{
                 }
                 //console.log(typeof (0.4*range_max));
             }
-            st = st + lidar_intensity *increment;
+            st = st + this.lidar_intensity * increment;
         }
+        return true;
     }
     //<div id="lidarDiv" style="text-align: center;"><canvas id="lidarCanvas"></canvas></div>
 }
