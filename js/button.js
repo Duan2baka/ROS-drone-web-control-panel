@@ -124,5 +124,4 @@ class Button {
         this.base.addEventListener( evt, func );
         this.img.addEventListener( evt, func );
     }
-
 }

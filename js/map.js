@@ -12,6 +12,12 @@ class MapComponent{
         this.message = -1;
         this.pos_x = -1;
         this.pos_y = -1;
+        this.mouseDown = false;
+        this.startX = 0;
+        this.startY = 0;
+        this.focus_x = 0;
+        this.focus_y = 0;
+        this.scale = 1;
         // this.update_time = attrs.update_time || 0.2;
         // this.time_stamp = -1;
         // this.time_stamp_ns = -1;
@@ -26,6 +32,7 @@ class MapComponent{
         div_style.position = 'absolute';
         div_style.top = this.y + "px";
         div_style.left = this.x + "px";
+        // console.log(this.y);
         div_style.textAlign = "center";
         div_style.touchAction = 'none';
         div_style.userSelect = 'none';
@@ -38,6 +45,40 @@ class MapComponent{
     }
 
     __init_canvas(){
+        var self = this;
+        this.canvas.addEventListener('mousedown', function(e) {
+            self.mouseDown = true;
+            self.startX = e.clientX - self.canvas.offsetLeft - self.div.offsetLeft + window.scrollX;
+            self.startY = e.clientY - self.canvas.offsetTop - self.div.offsetTop + window.scrollY;
+        });
+
+        this.canvas.addEventListener('mousemove', function(e) {
+            if (self.mouseDown) {
+                var mouseX = e.clientX - self.canvas.offsetLeft - self.div.offsetLeft + window.scrollX;
+                var mouseY = e.clientY - self.canvas.offsetTop - self.div.offsetTop + window.scrollY;
+            }
+        });
+
+        this.canvas.addEventListener('mouseup', function(e) {
+            self.mouseDown = false;
+            var mouseX = e.clientX - self.canvas.offsetLeft - self.div.offsetLeft + window.scrollX;
+            var mouseY = e.clientY - self.canvas.offsetTop - self.div.offsetTop + window.scrollY;
+
+            if(map_resolution == -1) return;
+            var real_x = self.startX * map_resolution + map_origin_x; 
+            var real_y = self.startY * map_resolution + map_origin_y;
+
+            var orientation = Math.atan(-(mouseY - self.startY) / (mouseX - self.startX)) / Math.PI;
+            if(mouseX < self.startX && mouseY <= self.startY) orientation += 1;
+            else if(mouseX < self.startX && mouseY >= self.startY) orientation -= 1; 
+            orientation *= -1;
+            // console.log(orientation);
+             console.log(self.startX, self.startY);
+            // set_goal(real_x, real_y, orientation);
+        });
+        this.canvas.addEventListener('onMouseWheel', function(e){
+
+        });
     }
     
     setHidden(flag){

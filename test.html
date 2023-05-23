@@ -180,7 +180,7 @@
                 // listener.unsubscribe();
             });
             mapListener.subscribe(function(message) {
-                map.updateMap(mapMessage);
+                map.updateMap(message);
             });
             footprintListener.subscribe(function(message) {
             });
@@ -200,10 +200,11 @@
                 var map_y = (current_pose_y - map_origin_y) / map_resolution;
                 //console.log("x: " + map_x + " y:" + map_y);
                 if(typeof map != 'undefined'){
-                    map.pos_y = map_x;
+                    map.pos_x = map_x;
                     map.pos_y = map_y;
+                    //console.log(map_x);
                 }
-                console.log(message.pose.pose.orientation.z);
+                // console.log(message.pose.pose.orientation.z);
                 map.updateMap(-1);
             });
         </script>
@@ -255,10 +256,6 @@
                     video_height = video_width / 640 * 480;
                     scaler =  video_width / 640;
                 }
-                
-                // console.log(document.getElementById("canvas").offsetWidth);
-
-                ///-------------------------------------------------------------------------------------------------- create the joystick component
 
                 joystick = new JoyStick({
                     radius: joystick_radius * scaler,
@@ -321,8 +318,8 @@
                     },
                 });
                 map = new MapComponent({
-                    x: '100px',
-                    y: '100px',
+                    x: 300,
+                    y: 300,
                     father_element: document.getElementById('test'),
                     width: '400px',
                     height: '400px',
@@ -362,8 +359,6 @@
             
 
             function resetPosition( evt ){ // update the position of components
-                // console.log("OnResize");
-                // console.log(evt.type);
 
                 /// ------------------------------- joystick
 
@@ -515,42 +510,6 @@
                 window.location.reload();
             });
 		</script>
-        <script type="text/javascript"> // opencv
-            window.addEventListener("load", function(){
-                var canvas = document.getElementById("mapCanvas");
-                var mouseDown, startX, startY;
-                canvas.addEventListener('mousedown', function(e) {
-                    mouseDown = true;
-                    startX = e.clientX - canvas.offsetLeft + window.scrollX;
-                    startY = e.clientY - canvas.offsetTop + window.scrollY;
-                });
-
-                canvas.addEventListener('mousemove', function(e) {
-                    if (mouseDown) {
-                        var mouseX = e.clientX - canvas.offsetLeft + window.scrollX;
-                        var mouseY = e.clientY - canvas.offsetTop + window.scrollY;
-                    }
-                });
-
-                canvas.addEventListener('mouseup', function(e) {
-                    mouseDown = false;
-                    var mouseX = e.clientX - canvas.offsetLeft + window.scrollX;
-                    var mouseY = e.clientY - canvas.offsetTop + window.scrollY;
-
-                    if(map_resolution == -1) return;
-                    var real_x = startX * map_resolution + map_origin_x; 
-                    var real_y = startY * map_resolution + map_origin_y;
-
-                    var orientation = Math.atan(-(mouseY - startY) / (mouseX - startX)) / Math.PI;
-                    if(mouseX < startX && mouseY <= startY) orientation += 1;
-                    else if(mouseX < startX && mouseY >= startY) orientation -= 1; 
-                    orientation *= -1;
-                    //console.log(orientation);
-                    set_goal(real_x, real_y, orientation);
-                });
-                // resize(src, dst, Size(), 0.5, 0.5, interpolation);
-            });
-        </script>
     </head>
     <body onload="onloadfunction();">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="navbar">
@@ -655,6 +614,6 @@
             </div>
         </nav>
         <div id="canvas" class="container-md text-center"></div>
-        <div class="container-md text-center" id="test"></div>
+        <div class="container-md" id="test"></div>
     </body>
 </html>
