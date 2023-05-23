@@ -15,8 +15,8 @@ class MapComponent{
         this.mouseDown = false;
         this.startX = 0;
         this.startY = 0;
-        this.focus_x = 0;
-        this.focus_y = 0;
+        this.anchor_x = 0;
+        this.anchor_y = 0;
         this.scale = 1;
         // this.update_time = attrs.update_time || 0.2;
         // this.time_stamp = -1;
@@ -76,8 +76,11 @@ class MapComponent{
              console.log(self.startX, self.startY);
             // set_goal(real_x, real_y, orientation);
         });
-        this.canvas.addEventListener('onMouseWheel', function(e){
+        this.canvas.addEventListener('mousewheel', function(e){
+            if(e.wheelDelta > 0){
 
+            }
+            console.log(e.wheelDelta);
         });
     }
     
@@ -100,7 +103,17 @@ class MapComponent{
         else this.message = mapMessage;
         var width = mapMessage.info.width, height = mapMessage.info.height;
         var imageData = new ImageData(width, height);
+        function getIndex(x, y, width){
+            return x + y * width;
+        }
+        function getPosition(index, width){
+            return index % width, parseInt(index / width);
+        }
         for (var i = 0; i < width * height; i++) {
+            var tmp_x, tmp_y;
+            tmp_x, tmp_y = getPosition(i, width);
+            
+            /*
             if(mapMessage.data[i] == -1){
                 imageData.data[i * 4] = 128;
                 imageData.data[i * 4 + 1] = 128;
@@ -112,14 +125,14 @@ class MapComponent{
                 imageData.data[i * 4 + 1] = (100 - mapMessage.data[i]) / 100 * 255;
                 imageData.data[i * 4 + 2] = (100 - mapMessage.data[i]) / 100 * 255;
                 imageData.data[i * 4 + 3] = 255;
-            }
+            }*/
+
         }
         if(this.canvas.hidden) return;
         this.canvas.width = width;
         this.canvas.height = height;
         var context = this.canvas.getContext("2d");
         context.putImageData(imageData, 0, 0);
-
         if(this.pos_x != -1){
             context.fillStyle = 'green';
             context.beginPath();
