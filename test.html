@@ -202,10 +202,10 @@
                 if(typeof map != 'undefined'){
                     map.pos_x = map_x;
                     map.pos_y = map_y;
+                    map.updateMap(-1);
                     //console.log(map_x);
                 }
                 // console.log(message.pose.pose.orientation.z);
-                map.updateMap(-1);
             });
         </script>
         <script type="text/javascript"> // navigation
@@ -245,7 +245,7 @@
                 goal.send();
             }
         </script>
-        <script type="text/javascript" defer> // UI
+        <script type="text/javascript"> // UI
             var prex, prey, preax, preay, preaz;
             prex = prey = preax = preay = preaz = -1;
             
