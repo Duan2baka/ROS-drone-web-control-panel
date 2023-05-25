@@ -15,8 +15,8 @@ class MapComponent{
         this.mouseDown = false;
         this.startX = 0;
         this.startY = 0;
-        this.anchor_x = 0;
-        this.anchor_y = 0;
+        this.anchor_dx = 0;
+        this.anchor_dy = 0;
         this.scale = 1;
         this.map_width = 0;
         this.map_height = 0;
@@ -43,14 +43,12 @@ class MapComponent{
         div_style.position = 'absolute';
         div_style.top = this.y + "px";
         div_style.left = this.x + "px";
-        // console.log(this.y);
         div_style.textAlign = "center";
         div_style.touchAction = 'none';
         div_style.userSelect = 'none';
         father_element.appendChild( this.div );
 
         this.canvas = document.createElement('canvas');
-        // console.log(this.img.style);
         this.canvas.id = this.canvas_id;
         this.div.appendChild( this.canvas );
     }
@@ -64,8 +62,8 @@ class MapComponent{
             self.startY = e.offsetY;
             self.start_x_map = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[0];
             self.start_y_map = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[1];
-            self.start_anchor_x = self.anchor_x;
-            self.start_anchor_y = self.anchor_y;
+            self.start_anchor_dx = self.anchor_dx;
+            self.start_anchor_dy = self.anchor_dy;
         });
 
         this.canvas.addEventListener('mousemove', function(e) {
@@ -79,8 +77,8 @@ class MapComponent{
                         self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[1]);
                 }
                 else{
-                    self.anchor_x = self.start_anchor_x + (mouseX - self.startX) / self.scale;
-                    self.anchor_y = self.start_anchor_y + (mouseY - self.startY) / self.scale;
+                    self.anchor_dx = self.start_anchor_dx + (mouseX - self.startX) / self.scale;
+                    self.anchor_dy = self.start_anchor_dy + (mouseY - self.startY) / self.scale;
                     self.updateMap(-1);
                 }
                 e.stopPropagation();
@@ -89,7 +87,6 @@ class MapComponent{
 
         this.canvas.addEventListener('mouseup', function(e) {
             self.mouseDown = false;
-            console.log(e.offsetX, e.offsetY);
             let mouseX = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[0];
             let mouseY = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[1];
             if(self.set_navigation){
@@ -101,25 +98,28 @@ class MapComponent{
                 if(mouseX < self.start_x_map && mouseY <= self.start_y_map) orientation += 1;
                 else if(mouseX < self.start_x_map && mouseY >= self.start_y_map) orientation -= 1; 
                 orientation *= -1;
-                // console.log(orientation);
-                //console.log(self.startX, self.startY);
                 self.updateMap(-1);
                 self.set_navigation = false;
-                console.log(real_x, real_y);
+                document.getElementById("cancel").classList.add(disabled);
                 if(self.add_goal){
-
+                    self.add_goal = false;
+                    let goal = prompt("Goal name", "Location " + (self.path_point.length + 1));
+                    if (goal == null || goal == "") {
+                        return;
+                    } else {
+                        self.path_point.push([real_x, real_y, orientation, goal]);
+                        updateGoal(self.path_point);
+                    }
                 }
                 ///else set_goal(real_x, real_y, orientation);
-                ///set_goal(real_x, real_y, orientation);
             }
         });
         this.canvas.addEventListener('mousewheel', function(e){
-            //let previous_scale = self.scale;
             if(e.wheelDelta > 0){
                 self.scale *= 1.1;
                 if(self.scale < 7){
-                    self.anchor_x -= (e.offsetX - self.map_width / 2) / 11;
-                    self.anchor_y -= (e.offsetY - self.map_height / 2) / 11;
+                    self.anchor_dx -= (e.offsetX - self.map_width / 2) / 11;
+                    self.anchor_dy -= (e.offsetY - self.map_height / 2) / 11;
                 }
             }
             if(e.wheelDelta < 0)
@@ -145,13 +145,13 @@ class MapComponent{
         let relative_x = x - width / 2;
         let relative_y = y - height / 2;
 
-        let target_x = parseInt(relative_x / self.scale + width / 2 - self.anchor_x);
-        let target_y = parseInt(relative_y / self.scale + height / 2 - self.anchor_y);
+        let target_x = parseInt(relative_x / self.scale + width / 2 - self.anchor_dx);
+        let target_y = parseInt(relative_y / self.scale + height / 2 - self.anchor_dy);
 
         return [target_x, target_y];
     }
     getCanvasPosition(x, y, width, height, self){ // map to canvas
-        return [(x - width / 2 + self.anchor_x) * self.scale + width / 2, (y - height / 2 + self.anchor_y) * self.scale + height / 2];
+        return [(x - width / 2 + self.anchor_dx) * self.scale + width / 2, (y - height / 2 + self.anchor_dy) * self.scale + height / 2];
     }
 
     updateMap(mapMessage){
@@ -197,21 +197,6 @@ class MapComponent{
                 imageData.data[i * 4 + 3] = 255;
             }
 
-
-            /*
-            if(mapMessage.data[i] == -1){
-                imageData.data[i * 4] = 128;
-                imageData.data[i * 4 + 1] = 128;
-                imageData.data[i * 4 + 2] = 128;
-                imageData.data[i * 4 + 3] = 255;
-            }
-            else{
-                imageData.data[i * 4] = 255;
-                imageData.data[i * 4 + 1] = (100 - mapMessage.data[i]) / 100 * 255;
-                imageData.data[i * 4 + 2] = (100 - mapMessage.data[i]) / 100 * 255;
-                imageData.data[i * 4 + 3] = 255;
-            }*/
-
         }
         if(this.canvas.hidden) return;
         this.canvas.width = width;
@@ -235,7 +220,7 @@ class MapComponent{
         let start_y = this.getCanvasPosition(start_x_map, start_y_map, this.map_width, this.map_height, this)[1];
         let end_x = this.getCanvasPosition(end_x_map, end_y_map, this.map_width, this.map_height, this)[0];
         let end_y = this.getCanvasPosition(end_x_map, end_y_map, this.map_width, this.map_height, this)[1];
-        //console.log(start_x, start_y, end_x, end_y);
+        
         let context = this.canvas.getContext("2d");
         let angle = Math.atan2(end_y - start_y, end_x - start_x);
         let arrowLength = 10;
@@ -253,5 +238,4 @@ class MapComponent{
         context.lineTo(end_x, end_y);
         context.fill();
     }
-    //<div id="lidarDiv" style="text-align: center;"><canvas id="lidarCanvas"></canvas></div>
 }

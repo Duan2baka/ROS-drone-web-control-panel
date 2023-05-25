@@ -482,11 +482,6 @@
                 //document.getElementById("lidarCanvas").hidden = !cb.checked;
                 // console.log(cb.checked);
             }
-            function OnSetDestinationButtonClick(){
-                var tmp = document.getElementById("set_destination");
-                tmp.innerHTML = map.set_navigation ? "Set Destination" : "Cancel Set Destination";
-                map.set_navigation = !map.set_navigation;
-            }
             function onloadfunction(){
                 var elements = document.getElementsByClassName("navbar-collapse");
                 for (var i = 0; i < elements.length; i++) {
@@ -507,6 +502,31 @@
                 update_twist(0, 0, 0, 0, 0, 0);
                 window.location.reload();
             });
+            function insertAfter(newElement,targetElement){
+                var parent = targetElement.parentNode;
+                if(parent.lastChild == targetElement){
+                    parent.appendChild(newElement);
+                }else{
+                    parent.insertBefore(newElement,targetElement.nextSibling);
+                }
+            }
+            function updateGoal(path_point){
+                const goalNodes = document.querySelectorAll('.goal');
+                goalNodes.forEach(node => node.parentNode.removeChild(node));
+                var pre_node = document.getElementById("goals");
+                path_point.forEach(goal => { /// to be tested
+                    let list = document.createElement("li");
+                    let tmp = document.createElement("a");
+                    tmp.innerHTML = goal[3];
+                    tmp.href = 'javascript: console.log( ' + goal[2] + ');console.log("another log");';
+                    //tmp.href += 'set_goal(' + goal[0] + ', ' + goal[1] + ', ' + goal[2] + ');';
+                    tmp.classList.add("goal");
+                    tmp.classList.add("dropdown-item");
+                    list.appendChild(tmp);
+                    insertAfter(list, pre_node);
+                    pre_node = tmp;
+                });
+            }
 		</script>
     </head>
     <body onload="onloadfunction();">
@@ -590,13 +610,26 @@
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navDropdown">
                                 <li>
-                                    <a class="dropdown-item" id="set_destination" href="javascript: OnSetDestinationButtonClick();">Set Destination</a>
+                                    <a class="dropdown-item" href=
+                                    "javascript: map.set_navigation=true;map.add_goal=false;document.getElementById('cancel').classList.remove('disabled');">
+                                    Set Destination</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">Add Goal</a>
+                                    <a class="dropdown-item" href=
+                                    "javascript:map.set_navigation = map.add_goal = true; document.getElementById('cancel').classList.remove('disabled');">
+                                    Add Goal</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item disabled" href=
+                                    "javascript: map.set_navigation = map.add_goal = false; document.getElementById('cancel').classList.add('disabled');" id="cancel">
+                                    Cancel</a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
-                                <h6 class="dropdown-header">Goals</h6>
+                                <h6 class="dropdown-header" id="goals">Goals</h6>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item disabled" href="#">Load preset goals</a>
+                                </li>
                             </ul>
                         </li>
                     </ul>
