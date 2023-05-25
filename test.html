@@ -70,8 +70,6 @@
             var map_origin_orientation;
             var mapMessage = -1;
 
-            var set_navigation = false;
-            var path_point = [];
         </script>
         <script type="text/javascript"> // ROS create toplic variable
             // Connecting to ROS
@@ -486,8 +484,8 @@
             }
             function OnSetDestinationButtonClick(){
                 var tmp = document.getElementById("set_destination");
-                tmp.innerHTML = set_navigation ? "Set Destination" : "Cancel Set Destination";
-                set_navigation = !set_navigation;
+                tmp.innerHTML = map.set_navigation ? "Set Destination" : "Cancel Set Destination";
+                map.set_navigation = !map.set_navigation;
             }
             function onloadfunction(){
                 var elements = document.getElementsByClassName("navbar-collapse");
