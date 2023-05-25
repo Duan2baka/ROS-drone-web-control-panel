@@ -32,7 +32,6 @@ class Lidar{
         father_element.appendChild( this.div );
 
         this.canvas = document.createElement('canvas');
-        // console.log(this.img.style);
         this.canvas.id = this.canvas_id;
         this.div.appendChild( this.canvas );
     }
@@ -40,14 +39,11 @@ class Lidar{
     __init_canvas(){
         this.imageData = new ImageData(this.width, this.height);
         for (var i = 0; i < this.width * this.height; i++) {
-            this.imageData.data[i * 4] = 128; // Red channel
-            this.imageData.data[i * 4 + 1] = 128; // Green channel
-            this.imageData.data[i * 4 + 2] = 128; // Blue channel
-            this.imageData.data[i * 4 + 3] = 0; // Alpha channel
+            this.imageData.data[i * 4] = 128;
+            this.imageData.data[i * 4 + 1] = 128;
+            this.imageData.data[i * 4 + 2] = 128;
+            this.imageData.data[i * 4 + 3] = 0;
         }
-        // console.log(canvas);
-        // console.log(this.context);
-        // console.log(this.canvas);
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         var context = this.canvas.getContext("2d");
@@ -81,7 +77,6 @@ class Lidar{
     }
     
     update_position(x, y){
-        // console.log(123);
         this.y = y;
         this.x = x;
         this.div.style.top = this.y + "px";
@@ -102,7 +97,6 @@ class Lidar{
         }
         var canvas = this.canvas;
         if(canvas.hidden) return;
-        // console.log(canvas);
         canvas.width = this.width;
         canvas.height = this.height;
         var context = canvas.getContext("2d");
@@ -130,7 +124,7 @@ class Lidar{
         context.fillStyle = 'blue';
         context.fill();
 
-        // deal with the message
+        // process the message
         var increment = message.angle_increment;
         var angle_max = message.angle_max;
         var angle_min = message.angle_min;
@@ -140,7 +134,6 @@ class Lidar{
 
         for(var i = 0; i < message.ranges.length; i += this.lidar_intensity){
             let tmpFlag = true;
-            //console.log(premsg.length);
             for(var j = 0; j < premsg.length; j ++)
                 if((!premsg[j].ranges[i])) tmpFlag = false;
             if(tmpFlag && message.ranges[i]){
@@ -149,11 +142,9 @@ class Lidar{
                     centerY + (Math.sin(st + 0.5 * Math.PI) * message.ranges[i] / range_max) * (this.width * 0.8 - 5) * this.scaler, context,
                     Math.min(Math.max(3 * this.width * this.scaler / 4 / 300, 1), 3));
                 }
-                //console.log(typeof (0.4*range_max));
             }
             st = st + this.lidar_intensity * increment;
         }
         return true;
     }
-    //<div id="lidarDiv" style="text-align: center;"><canvas id="lidarCanvas"></canvas></div>
 }

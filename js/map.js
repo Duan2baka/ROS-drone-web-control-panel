@@ -134,7 +134,6 @@ class MapComponent{
     }
     
     update_position(x, y){
-        // console.log(123);
         this.y = y;
         this.x = x;
         this.div.style.top = this.y + "px";

@@ -163,7 +163,6 @@
                         }
                     });
                 }
-                //console.log(twist);
                 cmdVel.publish(twist);
             }
             function cancelAllGoals(){
@@ -175,7 +174,6 @@
                 if(typeof lidar === 'undefined') return;
                 if(lidar.update_canvas(message, premsg)) premsg = [];
                 else premsg.push(message);
-                // listener.unsubscribe();
             });
             mapListener.subscribe(function(message) {
                 map.updateMap(message);
@@ -183,27 +181,22 @@
             footprintListener.subscribe(function(message) {
             });
             mapMetaListener.subscribe(function(message) {
-                //console.log(message);
                 map_resolution = message.resolution;
                 map_origin_x = parseFloat(message.origin.position.x);
                 map_origin_y = parseFloat(message.origin.position.y);
                 map_origin_orientation = parseFloat(message.origin.orientation.z);
             });
             PoseListener.subscribe(function(message) {
-                //console.log(message);
                 if(map_resolution == -1) return;
                 var current_pose_x = parseFloat(message.pose.pose.position.x);
                 var current_pose_y = parseFloat(message.pose.pose.position.y);
                 var map_x = (current_pose_x - map_origin_x) / map_resolution;
                 var map_y = (current_pose_y - map_origin_y) / map_resolution;
-                //console.log("x: " + map_x + " y:" + map_y);
                 if(typeof map != 'undefined'){
                     map.pos_x = map_x;
                     map.pos_y = map_y;
                     map.updateMap(-1);
-                    //console.log(map_x);
                 }
-                // console.log(message.pose.pose.orientation.z);
             });
         </script>
         <script type="text/javascript"> // navigation
@@ -338,7 +331,6 @@
                     var angular_direction = 0;
                     if(clockwiseButton.flag) angular_direction = -1;
                     else if(counterclockwiseButton.flag) angular_direction = 1;
-                    //console.log(dx,dy);
                     if(!is_stop){
                         if(Math.abs(dx) + Math.abs(dy) == 0) update_twist(0, 0, 0, 0, 0, angular_direction * angular_speed);
                         else{
@@ -346,7 +338,6 @@
                             let current_dis = Math.sqrt(dx * dx + dy * dy);
                             update_twist((dx * current_dis / total_dis) / 100 * base_speed, 
                             (dy * current_dis / total_dis) / 100 * base_speed, 0, 0, 0, angular_direction * angular_speed);
-                            // console.log(dx * current_dis / total_dis, dy * current_dis / total_dis);
                         }
                     }
                     else update_twist(0, 0, 0, 0, 0, 0);
@@ -402,7 +393,6 @@
             addEventListener("resize", resetPosition);
             function changeStatus(){ /// Start Button
                 is_stop = !is_stop;
-                // console.log(is_stop);
                 if(is_stop){
                     const elem = document.getElementById("stopbutton");
                     elem.innerText = 'Start';
@@ -420,7 +410,6 @@
 
 
             function OnToggler( evt ){
-                // console.log(evt.type);
                 update_twist(0, 0, 0, 0, 0, 0);
                 if(JoystickStatus == -1){
                     JoystickStatus = joystick.base.hidden;
@@ -479,8 +468,6 @@
                     cb.checked = !cb.checked;
                 }
                 lidar.setHidden(!cb.checked);
-                //document.getElementById("lidarCanvas").hidden = !cb.checked;
-                // console.log(cb.checked);
             }
             function onloadfunction(){
                 var elements = document.getElementsByClassName("navbar-collapse");

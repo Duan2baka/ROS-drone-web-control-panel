@@ -59,7 +59,6 @@ class Button {
         div_style.left = this.x - this.size / 3 + "px";
         div_style.touchAction = 'none';
         div_style.userSelect = 'none';
-        // console.log(this.img.style);
         this.img.id = this.id;
         this.div.appendChild( this.img );
     }
@@ -87,15 +86,6 @@ class Button {
 
     __init_listener(){
         var self = this;
-        /*const TIMEOUT_MS = 500;
-
-        function Clicking() {
-            console.log("pressing");
-            self.onClick();
-            if (self.flag) {
-                setTimeout(Clicking, TIMEOUT_MS);
-            }
-        }*/
 
         function clear_flags(){
             self.flag = false;
