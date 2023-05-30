@@ -39,6 +39,8 @@
         <link href="./bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <script src="./bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         <script type="text/javascript">// global variables
+            var host = '192.168.1.10';
+
             var video_width = 640;
             var video_height = 480;
             var scaler = 1;
@@ -69,6 +71,8 @@
             var map_origin_y;
             var map_origin_orientation;
             var mapMessage = -1;
+
+            var enable_navigation = false;
 
         </script>
         <script type="text/javascript"> // ROS create toplic variable
@@ -207,6 +211,7 @@
             });
 
             function set_goal(x, y, z){
+                if(!enable_navigation) return;
                 cancelAllGoals();
 
                 var positionVec3 = new ROSLIB.Vector3(null);
@@ -319,7 +324,7 @@
 
                 var viewer = new MJPEGCANVAS.Viewer({ 
                     divID : 'canvas',
-                    host : '192.168.1.10',
+                    host : host,
                     width : video_width,
                     height : video_height,
                     topic : '/camera/rgb/image_raw'
@@ -407,7 +412,6 @@
                     elem.innerText = 'Stop';
                 }
             }
-
 
             function OnToggler( evt ){
                 update_twist(0, 0, 0, 0, 0, 0);
@@ -505,8 +509,8 @@
                     let list = document.createElement("li");
                     let tmp = document.createElement("a");
                     tmp.innerHTML = goal[3];
-                    tmp.href = 'javascript: console.log( ' + goal[2] + ');console.log("another log");';
-                    //tmp.href += 'set_goal(' + goal[0] + ', ' + goal[1] + ', ' + goal[2] + ');';
+                    tmp.href = 'javascript: console.log( ' + goal[2] + ');';
+                    tmp.href += 'set_goal(' + goal[0] + ', ' + goal[1] + ', ' + goal[2] + ');';
                     tmp.classList.add("goal");
                     tmp.classList.add("dropdown-item");
                     list.appendChild(tmp);
@@ -620,12 +624,6 @@
                             </ul>
                         </li>
                     </ul>
-                    <!--
-                        <form class="d-flex">
-                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                        <button class="btn btn-outline-success" type="submit">Search</button>
-                        </form>
-                    -->
                     <button class="btn btn-outline-danger me-2" type="submit" onclick="cancelAllGoals();" id ='stopnavibutton'>Stop Navigation</button>
                     <button class="btn btn-outline-success" type="submit" onclick="changeStatus();" id ='stopbutton'>Start</button>
                 </div>
