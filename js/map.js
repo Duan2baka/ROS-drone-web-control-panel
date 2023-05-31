@@ -15,6 +15,7 @@ class MapComponent{
         this.mouseDown = false;
         this.startX = 0;
         this.startY = 0;
+        this.start_scale = 0;
         this.anchor_dx = 0;
         this.anchor_dy = 0;
         this.scale = 1;
@@ -55,6 +56,11 @@ class MapComponent{
 
     __init_canvas(){
         var self = this;
+        let isPointerdown = false,
+        pointers = [],
+        lastPointermove = { x: 0, y: 0 },
+        lastPoint1 = { x: 0, y: 0 },
+        lastPoint2 = { x: 0, y: 0 };
         this.canvas.addEventListener('mousedown', function(e) {
             self.mouseDown = true;
             //self.startX = e.clientX - self.canvas.offsetLeft - self.div.offsetLeft + window.scrollX;
@@ -82,9 +88,9 @@ class MapComponent{
                     self.updateMap(-1);
                 }
                 e.stopPropagation();
+                e.preventDefault();
             }
         });
-
         this.canvas.addEventListener('mouseup', function(e) {
             self.mouseDown = false;
             let mouseX = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[0];
@@ -111,7 +117,7 @@ class MapComponent{
                         updateGoal(self.path_point);
                     }
                 }
-                ///else set_goal(real_x, real_y, orientation);
+                else set_goal(real_x, real_y, orientation);
             }
         });
         this.canvas.addEventListener('mousewheel', function(e){
@@ -127,6 +133,92 @@ class MapComponent{
             self.updateMap(-1);
             e.stopPropagation();
         });
+
+        this.canvas.addEventListener('pointerdown', function (e) {
+            if(e.pointerType === 'mouse') return;
+            pointers.push(e);
+            if (pointers.length === 1) {
+                isPointerdown = true;
+                lastPointermove = { x: pointers[0].offsetX, y: pointers[0].offsetY };
+            } else if (pointers.length === 2) {
+                self.start_scale = self.scale;
+                lastPoint2 = { x: pointers[1].offsetX, y: pointers[1].offsetY };
+            }
+            lastPoint1 = { x: pointers[0].offsetX, y: pointers[0].offsetY };
+        });
+        this.canvas.addEventListener('pointermove', function (e) {
+            if(e.pointerType === 'mouse') return;
+            if (isPointerdown) {
+                handlePointers(e, 'update');
+                const current1 = { x: pointers[0].offsetX, y: pointers[0].offsetY };
+                if (pointers.length === 1) {
+                    if(self.set_navigation){
+                        self.updateMap(-1);
+                        self.drawArrow(self.start_x_map, self.start_y_map,
+                            self.getMapPosition(current1.x, current1.y, self.map_width, self.map_height, self)[0],
+                            self.getMapPosition(current1.x, current1.y, self.map_width, self.map_height, self)[1]);
+                    }
+                    else{
+                        self.anchor_dx += (current1.x - lastPointermove.x) / self.scale;
+                        self.anchor_dy += (current1.y - lastPointermove.y) / self.scale;
+                        lastPointermove = { x: current1.x, y: current1.y };
+                        self.updateMap(-1);
+                    }
+                } else if (pointers.length === 2) {
+                    const current2 = { x: pointers[1].offsetX, y: pointers[1].offsetY };
+                    let ratio = getDistance(current1, current2) / getDistance(lastPoint1, lastPoint2);
+                    self.scale = self.start_scale * ratio;
+                    self.updateMap(-1);
+                }
+            }
+            e.preventDefault();
+        });
+        
+        this.canvas.addEventListener('pointerup', function (e) {
+            if(e.pointerType === 'mouse') return;
+            if (isPointerdown) {
+                handlePointers(e, 'delete');
+                if (pointers.length === 0) {
+                    isPointerdown = false;
+                } else if (pointers.length === 1) {
+                    lastPointermove = { x: pointers[0].offsetX, y: pointers[0].offsetY };
+                }
+            }
+        });
+        
+        this.canvas.addEventListener('pointercancel', function (e) {
+            if(e.pointerType === 'mouse') return;
+            if (isPointerdown) {
+                isPointerdown = false;
+                pointers.length = 0;
+            }
+        });
+        
+        /**
+         * @param {PointerEvent} e
+         * @param {string} type
+         */
+        function handlePointers(e, type) {
+            for (let i = 0; i < pointers.length; i++) {
+                if (pointers[i].pointerId === e.pointerId) {
+                    if (type === 'update') {
+                        pointers[i] = e;
+                    } else if (type === 'delete') {
+                        pointers.splice(i, 1);
+                    }
+                }
+            }
+        }
+        function getDistance(a, b) {
+            const x = a.x - b.x;
+            const y = a.y - b.y;
+            return Math.hypot(x, y);
+        }
+        function getCenter(a, b) {
+            const x = (a.x + b.x) / 2;
+            const y = (a.y + b.y) / 2;
+            return { x: x, y: y };
+        }
     }
     
     setHidden(flag){
