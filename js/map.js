@@ -140,6 +140,8 @@ class MapComponent{
             if (pointers.length === 1) {
                 isPointerdown = true;
                 lastPointermove = { x: pointers[0].offsetX, y: pointers[0].offsetY };
+                self.start_x_map = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[0];
+                self.start_y_map = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[1];
             } else if (pointers.length === 2) {
                 self.start_scale = self.scale;
                 lastPoint2 = { x: pointers[1].offsetX, y: pointers[1].offsetY };
@@ -180,6 +182,33 @@ class MapComponent{
                 handlePointers(e, 'delete');
                 if (pointers.length === 0) {
                     isPointerdown = false;
+
+                    let mouseX = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[0];
+                    let mouseY = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[1];
+                    if(self.set_navigation){
+                        if(map_resolution == -1) return;
+                        let real_x = self.start_x_map * map_resolution + map_origin_x; 
+                        let real_y = self.start_y_map * map_resolution + map_origin_y;
+            
+                        let orientation = Math.atan(-(mouseY - self.start_y_map) / (mouseX - self.start_x_map)) / Math.PI;
+                        if(mouseX < self.start_x_map && mouseY <= self.start_y_map) orientation += 1;
+                        else if(mouseX < self.start_x_map && mouseY >= self.start_y_map) orientation -= 1; 
+                        orientation *= -1;
+                        self.updateMap(-1);
+                        self.set_navigation = false;
+                        document.getElementById("cancel").classList.add(disabled);
+                        if(self.add_goal){
+                            self.add_goal = false;
+                            let goal = prompt("Goal name", "Location " + (self.path_point.length + 1));
+                            if (goal == null || goal == "") {
+                                return;
+                            } else {
+                                self.path_point.push([real_x, real_y, orientation, goal]);
+                                updateGoal(self.path_point);
+                            }
+                        }
+                        else set_goal(real_x, real_y, orientation);
+                    }
                 } else if (pointers.length === 1) {
                     lastPointermove = { x: pointers[0].offsetX, y: pointers[0].offsetY };
                 }
