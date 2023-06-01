@@ -27,9 +27,6 @@ class MapComponent{
         this.time_gap = 0;
         this.path_point = [];
         
-        class PathPoint{
-
-        };
         // this.update_time = attrs.update_time || 0.2;
         // this.time_stamp = -1;
         // this.time_stamp_ns = -1;
@@ -41,9 +38,9 @@ class MapComponent{
     __create_div( father_element ){
         this.div = document.createElement('div');
         var div_style = this.div.style;
-        div_style.position = 'absolute';
-        div_style.top = this.y + "px";
-        div_style.left = this.x + "px";
+        //div_style.position = 'absolute';
+        //div_style.top = this.y + "px";
+        //div_style.left = this.x + "px";
         div_style.textAlign = "center";
         div_style.touchAction = 'none';
         div_style.userSelect = 'none';
@@ -97,16 +94,16 @@ class MapComponent{
             let mouseY = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[1];
             if(self.set_navigation){
                 if(map_resolution == -1) return;
-                let real_x = self.start_x_map * map_resolution + map_origin_x; 
+                let real_x = self.start_x_map * map_resolution + map_origin_x;
                 let real_y = self.start_y_map * map_resolution + map_origin_y;
     
                 let orientation = Math.atan(-(mouseY - self.start_y_map) / (mouseX - self.start_x_map)) / Math.PI;
                 if(mouseX < self.start_x_map && mouseY <= self.start_y_map) orientation += 1;
-                else if(mouseX < self.start_x_map && mouseY >= self.start_y_map) orientation -= 1; 
+                else if(mouseX < self.start_x_map && mouseY >= self.start_y_map) orientation -= 1;
                 orientation *= -1;
                 self.updateMap(-1);
                 self.set_navigation = false;
-                document.getElementById("cancel").classList.add(disabled);
+                document.getElementById("cancel").classList.add("disabled");
                 if(self.add_goal){
                     self.add_goal = false;
                     let goal = prompt("Goal name", "Location " + (self.path_point.length + 1));
@@ -243,14 +240,10 @@ class MapComponent{
             const y = a.y - b.y;
             return Math.hypot(x, y);
         }
-        function getCenter(a, b) {
-            const x = (a.x + b.x) / 2;
-            const y = (a.y + b.y) / 2;
-            return { x: x, y: y };
-        }
     }
     
     setHidden(flag){
+        this.div.hidden = flag;
         this.canvas.hidden = flag;
     }
     

@@ -71,8 +71,10 @@
             var map_origin_y;
             var map_origin_orientation;
             var mapMessage = -1;
+            var mapStatus = -1;
 
             var enable_navigation = false;
+            var preset_path_point = [];
 
         </script>
         <script type="text/javascript"> // ROS create toplic variable
@@ -388,6 +390,8 @@
                     lidar.setHidden(LidarStatus);
                     zoomOutButton.setHidden(zoombuttonStatus);
                     zoomInButton.setHidden(zoombuttonStatus);
+                    map.setHidden(mapStatus);
+                    mapStatus = -1;
                     zoombuttonStatus = -1;
                     JoystickStatus = -1;
                     RotationbuttonStatus = -1;
@@ -434,6 +438,10 @@
                     zoomInButton.setHidden(true);
                     zoomOutButton.setHidden(true);
                 }
+                if(mapStatus == -1){
+                    mapStatus = map.canvas.hidden;
+                    map.setHidden(true);
+                }
             }
 
             function JoystickCheckboxHandler(cb){
@@ -473,6 +481,13 @@
                 }
                 lidar.setHidden(!cb.checked);
             }
+            function MapCheckboxHandler(cb){
+                if(cb == null){
+                    cb = document.getElementById("MapCheckbox");
+                    cb.checked = !cb.checked;
+                }
+                map.setHidden(!cb.checked);
+            }
             function onloadfunction(){
                 var elements = document.getElementsByClassName("navbar-collapse");
                 for (var i = 0; i < elements.length; i++) {
@@ -505,7 +520,7 @@
                 const goalNodes = document.querySelectorAll('.goal');
                 goalNodes.forEach(node => node.parentNode.removeChild(node));
                 var pre_node = document.getElementById("goals");
-                path_point.forEach(goal => { /// to be tested
+                path_point.forEach(goal => {
                     let list = document.createElement("li");
                     let tmp = document.createElement("a");
                     tmp.innerHTML = goal[3];
@@ -619,7 +634,8 @@
                                 <h6 class="dropdown-header" id="goals">Goals</h6>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <a class="dropdown-item disabled" href="#">Load preset goals</a>
+                                    <a class="dropdown-item" href="javascript: map.path_point = preset_path_point;updateGoal(map.path_point);map.updateMap(-1);">
+                                    Load preset goals</a>
                                 </li>
                             </ul>
                         </li>
