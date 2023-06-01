@@ -33,6 +33,8 @@ class MapComponent{
 
         this.__create_div(this.father_element);
         this.__init_canvas();
+
+        ///console.log(this.canvas.getContext("2d"));
     }
 
     __create_div( father_element ){
@@ -84,9 +86,9 @@ class MapComponent{
                     self.anchor_dy = self.start_anchor_dy + (mouseY - self.startY) / self.scale;
                     self.updateMap(-1);
                 }
-                e.stopPropagation();
-                e.preventDefault();
             }
+            e.stopPropagation();
+            e.preventDefault();
         });
         this.canvas.addEventListener('mouseup', function(e) {
             self.mouseDown = false;
@@ -110,11 +112,12 @@ class MapComponent{
                     if (goal == null || goal == "") {
                         return;
                     } else {
-                        self.path_point.push([real_x, real_y, orientation, goal]);
+                        self.path_point.push([real_x, real_y, orientation, goal, self.start_x_map, self.start_y_map]);
                         updateGoal(self.path_point);
                     }
                 }
                 else set_goal(real_x, real_y, orientation);
+                self.updateMap(-1);
             }
         });
         this.canvas.addEventListener('mousewheel', function(e){
@@ -129,6 +132,7 @@ class MapComponent{
                 self.scale /= 1.1;
             self.updateMap(-1);
             e.stopPropagation();
+            e.preventDefault();
         });
 
         this.canvas.addEventListener('pointerdown', function (e) {
@@ -142,6 +146,8 @@ class MapComponent{
             } else if (pointers.length === 2) {
                 self.start_scale = self.scale;
                 lastPoint2 = { x: pointers[1].offsetX, y: pointers[1].offsetY };
+                self.set_navigation = false;
+                self.set_goal = false;
             }
             lastPoint1 = { x: pointers[0].offsetX, y: pointers[0].offsetY };
         });
@@ -200,11 +206,12 @@ class MapComponent{
                             if (goal == null || goal == "") {
                                 return;
                             } else {
-                                self.path_point.push([real_x, real_y, orientation, goal]);
+                                self.path_point.push([real_x, real_y, orientation, goal, self.start_x_map, self.start_y_map]);
                                 updateGoal(self.path_point);
                             }
                         }
                         else set_goal(real_x, real_y, orientation);
+                        self.updateMap(-1);
                     }
                 } else if (pointers.length === 1) {
                     lastPointermove = { x: pointers[0].offsetX, y: pointers[0].offsetY };
@@ -309,13 +316,26 @@ class MapComponent{
                 imageData.data[i * 4 + 2] = (100 - mapMessage.data[index]) / 100 * 255;
                 imageData.data[i * 4 + 3] = 255;
             }
-
         }
         if(this.canvas.hidden) return;
         this.canvas.width = width;
         this.canvas.height = height;
         let context = this.canvas.getContext("2d");
+
         context.putImageData(imageData, 0, 0);
+        this.path_point.forEach(item =>{
+            //let canvas_x = this.getCanvasPosition(item[4], item[5], this.map_width, this.map_height, this)[0];
+            //let canvas_y = this.getCanvasPosition(item[4], item[5], this.map_width, this.map_height, this)[1];
+            
+            let target_x = this.getCanvasPosition(item[4], item[5], width, height, this)[0];
+            let target_y = this.getCanvasPosition(item[4], item[5], width, height, this)[1];
+            if(!(target_x >= width || target_x < 0 || target_y >= height || target_y < 0)){
+                context.fillStyle = 'black';
+                context.beginPath();
+                context.arc(target_x, target_y, 2 * this.scale, 0, 2 * Math.PI);
+                context.fill();
+            }
+        });
         if(this.pos_x != -1){
             let target_x = this.getCanvasPosition(this.pos_x, this.pos_y, width, height, this)[0];
             let target_y = this.getCanvasPosition(this.pos_x, this.pos_y, width, height, this)[1];
