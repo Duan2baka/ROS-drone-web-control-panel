@@ -324,9 +324,6 @@ class MapComponent{
 
         context.putImageData(imageData, 0, 0);
         this.path_point.forEach(item =>{
-            //let canvas_x = this.getCanvasPosition(item[4], item[5], this.map_width, this.map_height, this)[0];
-            //let canvas_y = this.getCanvasPosition(item[4], item[5], this.map_width, this.map_height, this)[1];
-            
             let target_x = this.getCanvasPosition(item[4], item[5], width, height, this)[0];
             let target_y = this.getCanvasPosition(item[4], item[5], width, height, this)[1];
             if(!(target_x >= width || target_x < 0 || target_y >= height || target_y < 0)){
