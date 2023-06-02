@@ -136,6 +136,7 @@ class MapComponent{
         });
 
         this.canvas.addEventListener('pointerdown', function (e) {
+            //console.log(2);
             if(e.pointerType === 'mouse') return;
             pointers.push(e);
             if (pointers.length === 1) {
@@ -143,6 +144,10 @@ class MapComponent{
                 lastPointermove = { x: pointers[0].offsetX, y: pointers[0].offsetY };
                 self.start_x_map = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[0];
                 self.start_y_map = self.getMapPosition(e.offsetX, e.offsetY, self.map_width, self.map_height, self)[1];
+                self.startX = e.offsetX;
+                self.startY = e.offsetY;
+                self.start_anchor_dx = self.anchor_dx;
+                self.start_anchor_dy = self.anchor_dy;
             } else if (pointers.length === 2) {
                 self.start_scale = self.scale;
                 lastPoint2 = { x: pointers[1].offsetX, y: pointers[1].offsetY };
@@ -199,7 +204,7 @@ class MapComponent{
                         orientation *= -1;
                         self.updateMap(-1);
                         self.set_navigation = false;
-                        document.getElementById("cancel").classList.add(disabled);
+                        document.getElementById("cancel").classList.add("disabled");
                         if(self.add_goal){
                             self.add_goal = false;
                             let goal = prompt("Goal name", "Location " + (self.path_point.length + 1));

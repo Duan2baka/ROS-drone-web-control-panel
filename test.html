@@ -50,13 +50,13 @@
             var joystick_radius = 80;
 
             var rotation_button_size = 80;
-            var JoystickStatus = -1;
-            var RotationbuttonStatus = -1;
+            var joystickStatus = -1;
+            var rotationButtonStatus = -1;
             var zoom_button_size = 40;
             var zoombuttonStatus = -1;
 
             var lidarSize = 200;
-            var LidarStatus = -1;
+            var lidarStatus = -1;
             var premsg = [];
             
 
@@ -73,7 +73,7 @@
             var mapMessage = -1;
             var mapStatus = -1;
 
-            var enable_navigation = false;
+            var enable_navigation = true;
             var preset_path_point = [];
 
         </script>
@@ -383,19 +383,19 @@
 
                 if(evt.type == 'shown.bs.collapse' || evt.type == 'hidden.bs.collapse' 
                 || evt.type == 'shown.bs.dropdown' || evt.type == 'hidden.bs.dropdown'){
-                    joystick.base.hidden = JoystickStatus;
-                    joystick.control.hidden = JoystickStatus;
-                    clockwiseButton.setHidden(RotationbuttonStatus);
-                    counterclockwiseButton.setHidden(RotationbuttonStatus);
-                    lidar.setHidden(LidarStatus);
+                    joystick.base.hidden = joystickStatus;
+                    joystick.control.hidden = joystickStatus;
+                    clockwiseButton.setHidden(rotationButtonStatus);
+                    counterclockwiseButton.setHidden(rotationButtonStatus);
+                    lidar.setHidden(lidarStatus);
                     zoomOutButton.setHidden(zoombuttonStatus);
                     zoomInButton.setHidden(zoombuttonStatus);
                     map.setHidden(mapStatus);
                     mapStatus = -1;
                     zoombuttonStatus = -1;
-                    JoystickStatus = -1;
-                    RotationbuttonStatus = -1;
-                    LidarStatus = -1;
+                    joystickStatus = -1;
+                    rotationButtonStatus = -1;
+                    lidarStatus = -1;
                 }
             }
 
@@ -419,18 +419,18 @@
 
             function OnToggler( evt ){
                 update_twist(0, 0, 0, 0, 0, 0);
-                if(JoystickStatus == -1){
-                    JoystickStatus = joystick.base.hidden;
+                if(joystickStatus == -1){
+                    joystickStatus = joystick.base.hidden;
                     joystick.base.hidden = true;
                     joystick.control.hidden = true;
                 }
-                if(RotationbuttonStatus == -1){
-                    RotationbuttonStatus = clockwiseButton.base.hidden;
+                if(rotationButtonStatus == -1){
+                    rotationButtonStatus = clockwiseButton.base.hidden;
                     clockwiseButton.setHidden(true);
                     counterclockwiseButton.setHidden(true);
                 }
-                if(LidarStatus == -1){
-                    LidarStatus = lidar.canvas.hidden;
+                if(lidarStatus == -1){
+                    lidarStatus = lidar.canvas.hidden;
                     lidar.setHidden(true);
                 }
                 if(zoombuttonStatus == -1){

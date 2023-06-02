@@ -101,6 +101,7 @@ class Lidar{
         canvas.height = this.height;
         var context = canvas.getContext("2d");
         context.putImageData(this.imageData, 0, 0);
+        //console.log("lidar");
         
         var centerX = canvas.width / 2;
         var centerY = canvas.height / 2;
@@ -132,7 +133,7 @@ class Lidar{
         var range_min = message.range_min;
         var st = message.angle_min;
 
-        for(var i = 0; i < message.ranges.length; i += this.lidar_intensity){
+        for(var i = 0; i < message.ranges.length; i += this.intensity){
             let tmpFlag = true;
             for(var j = 0; j < premsg.length; j ++)
                 if((!premsg[j].ranges[i])) tmpFlag = false;
@@ -141,9 +142,10 @@ class Lidar{
                     drawDot(centerX - (Math.cos(st + 0.5 * Math.PI) * message.ranges[i] / range_max) * (this.width * 0.8 - 5) * this.scaler,
                     centerY + (Math.sin(st + 0.5 * Math.PI) * message.ranges[i] / range_max) * (this.width * 0.8 - 5) * this.scaler, context,
                     Math.min(Math.max(3 * this.width * this.scaler / 4 / 300, 1), 3));
+                    //console.log("draw");
                 }
             }
-            st = st + this.lidar_intensity * increment;
+            st = st + this.intensity * increment;
         }
         return true;
     }
