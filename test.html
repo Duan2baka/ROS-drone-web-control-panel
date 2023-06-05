@@ -217,6 +217,7 @@
 
             function set_goal(x, y, z){
                 if(!enable_navigation) return;
+                if(is_stop) return;
                 cancelAllGoals();
 
                 var positionVec3 = new ROSLIB.Vector3(null);
