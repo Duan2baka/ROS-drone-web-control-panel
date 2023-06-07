@@ -87,7 +87,7 @@
             // -----------------
 
             var ros = new ROSLIB.Ros({
-                url : 'ws://' + host + ':9090'
+                url : 'ws://' + host + ':' + port
             });
 
             ros.on('connection', function() {
