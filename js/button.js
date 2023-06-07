@@ -61,7 +61,7 @@ class Button {
         div_style.userSelect = 'none';
         this.img.id = this.id;
         this.div.appendChild( this.img );
-        console.log(this.img.style);
+        //console.log(this.img.style);
         this.img.addEventListener('contextmenu', function(e){
             e.preventDefault();
         });
