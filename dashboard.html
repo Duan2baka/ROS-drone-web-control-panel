@@ -2,10 +2,12 @@
 <html>
     <head>
         <script>
-            var host = '192.168.1.10';
-            var port = '9090';
+            //var host = '192.168.1.10';
+            var host = '10.104.80.59';
+            var port = 9090;//20002
+            var video_port = 8080;//20005
         </script>
-        <title>Test</title>
+        <title>Dashboard</title>
 
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -335,7 +337,8 @@
                     host : host,
                     width : video_width,
                     height : video_height,
-                    topic : '/camera/rgb/image_raw'
+                    topic : '/camera/rgb/image_raw',
+                    port: video_port
                 });
                 function run_all_time(){
                     var text = '';
