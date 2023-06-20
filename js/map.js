@@ -266,7 +266,7 @@ class MapComponent{
         this.div.style.left = this.x + "px";
     }
     
-    getMapPosition(x, y, width, height, self){ // canvas to map
+    getMapPosition(x, y, width, height, self){ // canvas coordinates to map
         let relative_x = x - width / 2;
         let relative_y = y - height / 2;
 
@@ -275,11 +275,11 @@ class MapComponent{
 
         return [target_x, target_y];
     }
-    getCanvasPosition(x, y, width, height, self){ // map to canvas
+    getCanvasPosition(x, y, width, height, self){ // map coordinates to canvas
         return [(x - width / 2 + self.anchor_dx) * self.scale + width / 2, (y - height / 2 + self.anchor_dy) * self.scale + height / 2];
     }
 
-    updateMap(mapMessage){
+    updateMap(mapMessage){ // draw the map
         let T = Date.parse(new Date()) / 1000;
         if(T - this.canvas_stamp < this.time_gap){
             return;

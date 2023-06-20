@@ -4,8 +4,8 @@
         <script>
             //var host = '192.168.1.10';
             var host = '10.104.80.59';
-            var port = 9090;//20002
-            var video_port = 8080;//20005
+            var port = 9090; //rosbridge port, 20002 for remote server
+            var video_port = 8080;//ros_web_server port, 20005 for remote server
         </script>
         <title>Dashboard</title>
 
@@ -40,11 +40,14 @@
         <script type="text/javascript" src="./js/eventemitter2.min.js"></script>
         <script type="text/javascript" src="./js/roslib.min.js"></script>
         <script type="text/javascript" src="./js/long-press-event.min.js"></script>
-        <script tyoe = "text/javascript" src="./js/opencv.js"></script>
+        <script tyoe = "text/javascript" src="./js/opencv.js"></script> <!--not been used-->
         <script type="text/javascript" src="./js/mjpegcanvas.min.js"></script>
         <link href="./bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <script src="./bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         <script type="text/javascript">// global variables
+
+            // global variables for UI setting
+
             var video_width = 640;
             var video_height = 480;
             var scaler = 1;
@@ -63,8 +66,9 @@
             var lidarStatus = -1;
             var premsg = [];
             
+            // global variables for movement control
 
-            var is_stop = true;
+            var is_stop = true; // the drone will not move when it's true
             var speed_scaler = 0.5;
             var angular_speed_scaler = 0.5;
             var base_speed = 1;
@@ -146,10 +150,7 @@
             });
         </script>
         <script type="text/javascript"> // ROS functions
-            function update_twist(x, y, z, ax, ay, az){
-                if(x == prex && y == prey && ax == preax && ay == preay && az == preaz) return;
-                prex = x; prey = y;
-                preax = ax; preay = ay; preaz = az;
+            function update_twist(x, y, z, ax, ay, az){ // update twist of the drone
                 var twist = new ROSLIB.Message({
                     linear : {
                         x : x * speed_scaler,
@@ -178,7 +179,7 @@
                 }
                 cmdVel.publish(twist);
             }
-            function cancelAllGoals(){
+            function cancelAllGoals(){ // cancel navigation goals
                 cancelGoal.publish(new ROSLIB.Message({}));
             }
         </script>
@@ -219,7 +220,7 @@
                 actionName : 'move_base_msgs/MoveBaseAction'
             });
 
-            function set_goal(x, y, z){
+            function set_goal(x, y, z){ // navigation
                 if(!enable_navigation) return;
                 if(is_stop) return;
                 cancelAllGoals();
@@ -252,8 +253,6 @@
             }
         </script>
         <script type="text/javascript"> // UI
-            var prex, prey, preax, preay, preaz;
-            prex = prey = preax = preay = preaz = -1;
             
 			window.addEventListener("load", function(){ /// create UI components
                 mjpeg = document.getElementById("canvas");
@@ -340,7 +339,7 @@
                     topic : '/camera/rgb/image_raw',
                     port: video_port
                 });
-                function run_all_time(){
+                function run_all_time(){ // Detect joystick position
                     var text = '';
                     var dx = (-joystick.dy) || 0;
                     var dy = (-joystick.dx) || 0;
